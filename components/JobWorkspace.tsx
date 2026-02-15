@@ -4,6 +4,7 @@ import React, { useState, useCallback } from "react";
 import { Job, BOMItem, JobPhoto, IdentifiedPart, ItemStatus } from "@/lib/types";
 import { createPhoto, partToBOMItem, identifyPhoto, searchParts, calculateJobProgress, createTemplateFromJob } from "@/lib/store";
 import { WarningBadge, ConfidenceIndicator, ItemStatusTracker, InstallCapture, IntelligencePanel } from "./ValidationPanel";
+import { OrderingPanel } from "./OrderingPanel";
 import { VesselContextForm, VesselContext, EMPTY_VESSEL, vesselContextToAPI, loadSavedVessels, saveVessel } from "./VesselContextForm";
 import {
   ArrowLeft, Camera, Package, FileText, Upload, Loader2, X, Plus,
@@ -500,6 +501,9 @@ ${job.bom.map(item => {
                           <tr>
                             <td colSpan={8} className="!pt-0 !pb-3 !px-4">
                               <IntelligencePanel intelligence={item.intelligence} partName={item.name} compact />
+                              {item.ordering_options && (
+                                <OrderingPanel part={{ ...item, id: item.partId } as any} jobId={job.id} />
+                              )}
                             </td>
                           </tr>
                         )}

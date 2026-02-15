@@ -106,6 +106,7 @@ export function partToBOMItem(part: IdentifiedPart, photoId?: string): BOMItem {
     status: 'pending',
     confidence: part.confidence,
     intelligence: part.intelligence,
+    ordering_options: part.ordering_options,
     warnings: [],
   };
 }

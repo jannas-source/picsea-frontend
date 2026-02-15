@@ -11,6 +11,16 @@ export interface Listing {
   stock_qty: number;
 }
 
+export interface OrderingOption {
+  supplier: string;
+  priority: number;
+  type: 'primary' | 'fallback';
+  action: 'request_quote' | 'search' | 'affiliate_search';
+  url: string | null;
+  commission_estimate: string;
+  cwr_part_number?: string | null;
+}
+
 export interface IdentifiedPart {
   id: string;
   manufacturer: string;
@@ -20,6 +30,7 @@ export interface IdentifiedPart {
   category_name?: string;
   listings?: Listing[];
   intelligence?: PartIntelligence;
+  ordering_options?: OrderingOption[];
 }
 
 // ============================================================================
@@ -73,6 +84,8 @@ export interface BOMItem {
   confidence?: number;
   // AI Intelligence
   intelligence?: PartIntelligence;
+  // Ordering options
+  ordering_options?: OrderingOption[];
   // Warnings from pre-order validation
   warnings?: ValidationWarning[];
 }
