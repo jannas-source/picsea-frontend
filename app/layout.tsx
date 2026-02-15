@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "PicSea - AI Marine Parts Identification | 7-SENSE",
-  description: "Upload a photo, get the exact marine part SKU, pricing, and stock status in seconds. 29,294 parts from CWR Distribution.",
-  keywords: ["marine parts", "boat parts", "AI identification", "CWR Distribution", "7-SENSE"],
+  title: "PicSea - Marine Parts Visual Recognition | 7-SENSE",
+  description: "Upload a photo, get exact SKU, pricing, and stock status in seconds. Visual recognition technology for marine parts identification.",
+  keywords: ["marine parts", "boat parts", "visual recognition", "parts identification", "7-SENSE", "PicSea"],
   authors: [{ name: "7-SENSE Marine" }],
   openGraph: {
-    title: "PicSea - AI Marine Parts Identification",
-    description: "Photo to Part. Instant Match. 29,294 marine parts catalog.",
+    title: "PicSea - Marine Parts Visual Recognition",
+    description: "Photo to Part. Instant Match. Visual recognition technology for the modern boating industry.",
     type: "website",
   }
 };
