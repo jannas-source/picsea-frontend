@@ -83,7 +83,7 @@ export function Dashboard({ jobs, onOpenJob, onAddJob, onDeleteJob }: DashboardP
         </div>
         <button
           onClick={() => { setShowNew(true); setShowTemplates(true); }}
-          className="flex items-center gap-2 px-5 py-2.5 bg-[var(--primary,#1E40AF)] text-white font-semibold text-sm rounded-lg hover:bg-[var(--primary-light,#2563EB)] hover:shadow-[0_0_24px_var(--primary-glow,rgba(37,99,235,0.4))] transition-all"
+          className="flex items-center gap-2 px-5 py-2.5 bg-[var(--cyan)] text-[var(--abyss)] font-semibold text-sm rounded-lg hover:shadow-[0_0_24px_var(--cyan-glow)] transition-all"
         >
           <Plus className="w-4 h-4" />
           New Job
@@ -93,8 +93,8 @@ export function Dashboard({ jobs, onOpenJob, onAddJob, onDeleteJob }: DashboardP
       {/* Stats */}
       <div className="grid grid-cols-2 gap-6 mb-10">
         {[
-          { icon: Briefcase, label: 'Active Jobs', value: activeJobs.length || 0, color: 'var(--success,#10B981)' },
-          { icon: CheckCircle, label: 'Completed', value: completedJobs.length || 0, color: 'var(--primary-light,#2563EB)' },
+          { icon: Briefcase, label: 'Active Jobs', value: activeJobs.length || 0, color: 'var(--success)' },
+          { icon: CheckCircle, label: 'Completed', value: completedJobs.length || 0, color: 'var(--cyan)' },
         ].map(stat => (
           <div key={stat.label} className="glass rounded-2xl p-6">
             <div className="flex items-center gap-2.5 mb-3">
