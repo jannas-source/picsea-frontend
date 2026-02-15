@@ -78,7 +78,7 @@ export function SearchDemo() {
           </button>
         </div>
         <p className="text-xs text-pure-white/40 mt-2 text-center">
-          Live search across 29,294 marine parts from CWR Distribution
+          Live search across thousands of marine parts
         </p>
       </motion.div>
 

@@ -154,7 +154,7 @@ export function PhotoUpload({ onPartsIdentified }: PhotoUploadProps) {
             </h3>
             
             <p className="text-pure-white/60 mb-6 max-w-md">
-              Drop an image here or click to browse. We'll identify the manufacturer, model, and find exact matches.
+              Drop an image here or click to browse. We'll identify the manufacturer, model number, and find exact matches.
             </p>
 
             <div className="flex gap-4">
@@ -199,7 +199,7 @@ export function PhotoUpload({ onPartsIdentified }: PhotoUploadProps) {
               <div className="absolute inset-0 bg-deep-abyss-blue/80 backdrop-blur-sm flex items-center justify-center">
                 <div className="text-center">
                   <Loader2 className="w-12 h-12 text-bioluminescent-cyan animate-spin mx-auto mb-4" />
-                  <p className="text-pure-white font-bold">Analyzing with AI Vision...</p>
+                  <p className="text-pure-white font-bold">Analyzing image...</p>
                   <p className="text-pure-white/60 text-sm mt-2">This may take a few seconds</p>
                 </div>
               </div>
