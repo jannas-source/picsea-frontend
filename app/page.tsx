@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -26,78 +25,72 @@ export default function Home() {
     <main className="min-h-screen bg-[#000C18]">
       <Navbar onAuthClick={() => setAuthModalOpen(true)} />
 
-      {/* Hero - Opal Style */}
-      <section className="pt-40 pb-24 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+      {/* Hero */}
+      <section className="pt-32 sm:pt-40 pb-20 sm:pb-28 px-6">
+        <div className="max-w-3xl mx-auto text-center">
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold text-white mb-6 tracking-tight leading-[1.1]">
+            A new way to identify
+            <br />
+            marine parts.
+          </h1>
+          
+          <p className="text-lg sm:text-xl text-white/40 mb-4 font-light">
+            Sense. Navigate. Act.
+          </p>
+
+          <p className="text-base text-white/25 mb-10 max-w-xl mx-auto">
+            Upload a photo. Get the exact part, pricing, and stock status in seconds.
+          </p>
+
+          <a
+            href="#upload"
+            className="inline-flex items-center gap-2 px-7 py-3.5 bg-white text-[#000C18] font-semibold rounded-xl hover:bg-white/90 transition-all text-sm"
           >
-            <h1 className="text-6xl md:text-7xl font-bold text-white mb-6 tracking-tight">
-              A new way to identify
-              <br />
-              marine parts.
-            </h1>
-            
-            <p className="text-xl text-white/50 mb-8 font-light">
-              Sense. Navigate. Act.
-            </p>
-
-            <p className="text-lg text-white/40 mb-12 max-w-2xl mx-auto">
-              Upload a photo. Get the exact part, pricing, and stock status in seconds.
-            </p>
-
-            <div className="flex gap-4 justify-center">
-              <a
-                href="#upload"
-                className="px-8 py-4 bg-white text-black font-semibold rounded-lg hover:bg-white/90 transition-all inline-flex items-center gap-2"
-              >
-                Try It Now
-                <ArrowRight className="w-4 h-4" />
-              </a>
-            </div>
-          </motion.div>
+            Try It Now
+            <ArrowRight className="w-4 h-4" />
+          </a>
         </div>
       </section>
 
       {/* Upload Section */}
-      <section id="upload" className="py-24 px-6 bg-[#002B45]/20">
-        <div className="max-w-4xl mx-auto">
+      <section id="upload" className="py-16 sm:py-24 px-6">
+        <div className="max-w-2xl mx-auto">
           <PhotoUpload onPartsIdentified={handlePartsIdentified} />
         </div>
       </section>
 
       {/* OR Divider */}
-      <div className="py-16 px-6">
-        <div className="max-w-4xl mx-auto">
+      <div className="py-12 px-6">
+        <div className="max-w-2xl mx-auto">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/10"></div>
+              <div className="w-full border-t border-white/[0.06]" />
             </div>
             <div className="relative flex justify-center">
-              <span className="px-6 bg-[#000C18] text-white/40 text-sm">OR SEARCH BY NAME</span>
+              <span className="px-4 bg-[#000C18] text-white/25 text-xs uppercase tracking-widest">
+                or search by name
+              </span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Search Section */}
-      <section id="search" className="py-16 px-6">
-        <div className="max-w-4xl mx-auto">
+      <section id="search" className="py-12 sm:py-16 px-6">
+        <div className="max-w-2xl mx-auto">
           <SearchDemo />
         </div>
       </section>
 
-      {/* Specs - Clean Two Column */}
-      <section className="py-24 px-6 border-t border-white/10">
-        <div className="max-w-5xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-16">
+      {/* Specs */}
+      <section className="py-20 sm:py-28 px-6 border-t border-white/[0.06]">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid sm:grid-cols-2 gap-12 sm:gap-20">
             <div>
-              <h3 className="text-sm font-bold text-[#00F0FF] uppercase tracking-wider mb-6">
-                What's Inside
+              <h3 className="text-[11px] font-semibold text-[#00F0FF]/70 uppercase tracking-[0.2em] mb-6">
+                Capabilities
               </h3>
-              <ul className="space-y-4 text-white/60">
+              <ul className="space-y-3.5 text-white/40 text-sm">
                 <li>Visual recognition</li>
                 <li>Real-time pricing</li>
                 <li>Stock availability</li>
@@ -107,21 +100,21 @@ export default function Home() {
             </div>
 
             <div>
-              <h3 className="text-sm font-bold text-[#00F0FF] uppercase tracking-wider mb-6">
+              <h3 className="text-[11px] font-semibold text-[#00F0FF]/70 uppercase tracking-[0.2em] mb-6">
                 Technical
               </h3>
-              <div className="space-y-4 text-white/60">
-                <div className="flex justify-between">
+              <div className="space-y-3.5 text-sm">
+                <div className="flex justify-between text-white/40">
                   <span>Catalog</span>
-                  <span className="text-white">29,294 parts</span>
+                  <span className="text-white/70 font-medium">29,294 parts</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between text-white/40">
                   <span>Speed</span>
-                  <span className="text-white">&lt;5 seconds</span>
+                  <span className="text-white/70 font-medium">&lt;5 seconds</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between text-white/40">
                   <span>File size</span>
-                  <span className="text-white">Max 10MB</span>
+                  <span className="text-white/70 font-medium">Max 10MB</span>
                 </div>
               </div>
             </div>
