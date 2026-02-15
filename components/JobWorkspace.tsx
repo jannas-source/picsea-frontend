@@ -3,7 +3,8 @@
 import React, { useState, useCallback } from "react";
 import { Job, BOMItem, JobPhoto, IdentifiedPart, ItemStatus } from "@/lib/types";
 import { createPhoto, partToBOMItem, identifyPhoto, searchParts, calculateJobProgress, createTemplateFromJob } from "@/lib/store";
-import { WarningBadge, ConfidenceIndicator, ItemStatusTracker, InstallCapture } from "./ValidationPanel";
+import { WarningBadge, ConfidenceIndicator, ItemStatusTracker, InstallCapture, IntelligencePanel } from "./ValidationPanel";
+import { VesselContextForm, VesselContext, EMPTY_VESSEL, vesselContextToAPI, loadSavedVessels, saveVessel } from "./VesselContextForm";
 import {
   ArrowLeft, Camera, Package, FileText, Upload, Loader2, X, Plus,
   Check, Search, Trash2, Minus, ChevronDown, ChevronUp, AlertCircle,
@@ -55,7 +56,8 @@ export function JobWorkspace({ job, onUpdate, onBack }: JobWorkspaceProps) {
           photos: updated.photos.map(p => p.id === photo.id ? updatedPhoto : p),
         });
 
-        const result = await identifyPhoto(photo.file);
+        const vesselCtx = (job as any).vesselContext ? vesselContextToAPI((job as any).vesselContext) : undefined;
+        const result = await identifyPhoto(photo.file, vesselCtx);
         const identified: JobPhoto = {
           ...photo,
           status: 'identified',
@@ -444,7 +446,8 @@ ${job.bom.map(item => {
                       const lp = l ? (l.list_price_cents / 100) : 0;
 
                       return (
-                        <tr key={item.id}>
+                        <React.Fragment key={item.id}>
+                        <tr>
                           <td>
                             <div className="flex items-center gap-1">
                               <button onClick={() => updateBOMItem(item.id, { quantity: Math.max(1, item.quantity - 1) })} className="p-0.5 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">
@@ -457,8 +460,20 @@ ${job.bom.map(item => {
                             </div>
                           </td>
                           <td>
-                            <div className="text-xs font-mono text-[var(--cyan)] mb-0.5">{item.mpn}</div>
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <span className="text-xs font-mono text-[var(--cyan)]">{item.mpn}</span>
+                              {item.confidence && <ConfidenceIndicator score={item.confidence} showLabel={false} />}
+                              {item.intelligence?.context?.companion_parts && item.intelligence.context.companion_parts.length > 0 && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/15 text-blue-400 font-medium">+companion parts</span>
+                              )}
+                            </div>
                             <div className="text-sm font-medium truncate max-w-[240px]">{item.name}</div>
+                            {item.intelligence?.context?.compatibility_warning && (
+                              <div className="flex items-center gap-1 mt-1 text-[10px] text-amber-400">
+                                <AlertCircle className="w-3 h-3" />
+                                {item.intelligence.context.compatibility_warning.slice(0, 60)}...
+                              </div>
+                            )}
                           </td>
                           <td className="text-[var(--text-secondary)]">{item.manufacturer}</td>
                           <td className="text-[var(--cyan)] font-semibold">${dp.toFixed(2)}</td>
@@ -480,6 +495,14 @@ ${job.bom.map(item => {
                             </button>
                           </td>
                         </tr>
+                        {item.intelligence && (
+                          <tr>
+                            <td colSpan={8} className="!pt-0 !pb-3 !px-4">
+                              <IntelligencePanel intelligence={item.intelligence} partName={item.name} compact />
+                            </td>
+                          </tr>
+                        )}
+                        </React.Fragment>
                       );
                     })}
                   </tbody>
@@ -569,6 +592,13 @@ ${job.bom.map(item => {
                         <ShieldCheck className="w-3 h-3" />
                         Record installation details
                       </button>
+                    )}
+                    
+                    {/* AI Intelligence */}
+                    {item.intelligence && (
+                      <div className="mt-2">
+                        <IntelligencePanel intelligence={item.intelligence} partName={item.name} compact />
+                      </div>
                     )}
                     
                     {/* Installer notes */}

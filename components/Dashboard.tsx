@@ -4,10 +4,11 @@ import React, { useState } from "react";
 import { Job, JobTemplate } from "@/lib/types";
 import { createJob, loadTemplates, calculateJobProgress } from "@/lib/store";
 import { TemplateSelector } from "./TemplateSelector";
+import { VesselContextForm, VesselContext, EMPTY_VESSEL, loadSavedVessels, saveVessel } from "./VesselContextForm";
 import {
   Plus, Ship, Package, Clock, CheckCircle, Trash2,
   Briefcase, FileText, Camera, AlertTriangle, TrendingUp,
-  Wrench
+  Wrench, ChevronDown, ChevronUp
 } from "lucide-react";
 
 interface DashboardProps {
@@ -32,15 +33,31 @@ export function Dashboard({ jobs, onOpenJob, onAddJob, onDeleteJob }: DashboardP
   const [newVessel, setNewVessel] = useState('');
   const [newClient, setNewClient] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState<JobTemplate | undefined>();
+  const [showVesselForm, setShowVesselForm] = useState(false);
+  const [vesselContext, setVesselContext] = useState<VesselContext>({ ...EMPTY_VESSEL });
+  const [savedVessels] = useState(() => loadSavedVessels());
 
   const templates = loadTemplates();
 
   const handleCreate = () => {
     if (!newName.trim()) return;
     const job = createJob(newName.trim(), newVessel.trim(), newClient.trim(), selectedTemplate);
+    // Attach vessel context if filled
+    if (vesselContext.make || vesselContext.electrical_voltage) {
+      (job as any).vesselContext = vesselContext;
+      // Auto-save vessel if it has a name
+      if (vesselContext.name) saveVessel(vesselContext);
+    }
     onAddJob(job);
     setNewName(''); setNewVessel(''); setNewClient('');
     setShowNew(false); setShowTemplates(false); setSelectedTemplate(undefined);
+    setShowVesselForm(false); setVesselContext({ ...EMPTY_VESSEL });
+  };
+
+  const handleSelectSavedVessel = (v: VesselContext) => {
+    setVesselContext(v);
+    setNewVessel(v.name);
+    setShowVesselForm(true);
   };
 
   const handleTemplateSelect = (template: JobTemplate) => {
@@ -134,12 +151,49 @@ export function Dashboard({ jobs, onOpenJob, onAddJob, onDeleteJob }: DashboardP
               <input type="text" value={newClient} onChange={e => setNewClient(e.target.value)} placeholder="e.g. John Smith" className="w-full" />
             </div>
           </div>
+          {/* Vessel Context (Competitive Moat) */}
+          <div className="mb-4">
+            <button
+              onClick={() => setShowVesselForm(!showVesselForm)}
+              className="flex items-center gap-2 text-xs text-[var(--cyan)] hover:underline mb-2"
+            >
+              <Ship className="w-3 h-3" />
+              {showVesselForm ? 'Hide' : 'Add'} vessel details (enables compatibility checks)
+              {showVesselForm ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            </button>
+            
+            {/* Quick-select saved vessels */}
+            {!showVesselForm && savedVessels.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-2">
+                {savedVessels.map(v => (
+                  <button
+                    key={v.name}
+                    onClick={() => handleSelectSavedVessel(v)}
+                    className="text-[10px] px-2 py-1 rounded-full bg-[var(--surface-2)] text-[var(--text-secondary)] hover:bg-[var(--cyan)]/10 hover:text-[var(--cyan)] transition-all"
+                  >
+                    {v.name || `${v.make} ${v.model}`}
+                  </button>
+                ))}
+              </div>
+            )}
+            
+            {showVesselForm && (
+              <div className="mt-2 fade-in">
+                <VesselContextForm
+                  vessel={vesselContext}
+                  onChange={setVesselContext}
+                  compact
+                />
+              </div>
+            )}
+          </div>
+
           <div className="flex gap-2">
             <button onClick={handleCreate} disabled={!newName.trim()}
               className="px-4 py-2 bg-[var(--cyan)] text-[var(--abyss)] font-semibold text-sm rounded-lg disabled:opacity-30 hover:shadow-[0_0_16px_var(--cyan-glow)] transition-all">
               Create Job
             </button>
-            <button onClick={() => { setShowNew(false); setShowTemplates(false); setSelectedTemplate(undefined); }}
+            <button onClick={() => { setShowNew(false); setShowTemplates(false); setSelectedTemplate(undefined); setShowVesselForm(false); }}
               className="px-4 py-2 text-sm text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors">
               Cancel
             </button>
