@@ -74,16 +74,16 @@ export function Dashboard({ jobs, onOpenJob, onAddJob, onDeleteJob }: DashboardP
   return (
     <div className="max-w-5xl mx-auto px-5 py-8 fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-10">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight mb-1">Jobs</h1>
+          <h1 className="text-3xl font-bold tracking-tight mb-1.5">Jobs</h1>
           <p className="text-sm text-[var(--text-tertiary)]">
             Manage procurement across all active projects
           </p>
         </div>
         <button
           onClick={() => { setShowNew(true); setShowTemplates(true); }}
-          className="flex items-center gap-2 px-4 py-2.5 bg-[var(--cyan)] text-[var(--abyss)] font-semibold text-sm rounded-lg hover:shadow-[0_0_20px_var(--cyan-glow)] transition-all"
+          className="flex items-center gap-2 px-5 py-2.5 bg-[var(--primary,#1E40AF)] text-white font-semibold text-sm rounded-lg hover:bg-[var(--primary-light,#2563EB)] hover:shadow-[0_0_24px_var(--primary-glow,rgba(37,99,235,0.4))] transition-all"
         >
           <Plus className="w-4 h-4" />
           New Job
@@ -91,19 +91,17 @@ export function Dashboard({ jobs, onOpenJob, onAddJob, onDeleteJob }: DashboardP
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 gap-6 mb-10">
         {[
-          { icon: Briefcase, label: 'Active', value: activeJobs.length, color: 'var(--success)' },
-          { icon: Package, label: 'Parts', value: totalParts, color: 'var(--cyan)' },
-          { icon: CheckCircle, label: 'Completed', value: completedJobs.length, color: 'var(--text-secondary)' },
-          { icon: AlertTriangle, label: 'Warnings', value: warningCount, color: warningCount > 0 ? 'var(--warning)' : 'var(--text-tertiary)' },
+          { icon: Briefcase, label: 'Active Jobs', value: activeJobs.length || 0, color: 'var(--success,#10B981)' },
+          { icon: CheckCircle, label: 'Completed', value: completedJobs.length || 0, color: 'var(--primary-light,#2563EB)' },
         ].map(stat => (
-          <div key={stat.label} className="glass rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <stat.icon className="w-4 h-4" style={{ color: stat.color }} />
+          <div key={stat.label} className="glass rounded-2xl p-6">
+            <div className="flex items-center gap-2.5 mb-3">
+              <stat.icon className="w-5 h-5" style={{ color: stat.color }} />
               <span className="text-xs text-[var(--text-tertiary)] uppercase tracking-wider font-medium">{stat.label}</span>
             </div>
-            <span className="text-2xl font-bold">{stat.value}</span>
+            <span className="text-4xl font-bold tracking-tight">{stat.value}</span>
           </div>
         ))}
       </div>
