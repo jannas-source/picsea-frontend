@@ -247,7 +247,7 @@ ${job.bom.map(item => {
           <div className="flex items-center gap-6">
             <div className="text-right">
               <div className="text-xs text-[var(--text-tertiary)]">Est. Total</div>
-              <div className="text-lg font-bold text-[var(--cyan)] glow-text">${bomTotals.dealer.toFixed(2)}</div>
+              <div className="text-lg font-bold text-[var(--primary-light)] glow-text">${bomTotals.dealer.toFixed(2)}</div>
             </div>
             <select
               value={job.status}
@@ -273,7 +273,7 @@ ${job.bom.map(item => {
               onClick={() => setTab(t.key)}
               className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all ${
                 tab === t.key
-                  ? 'border-[var(--cyan)] text-[var(--cyan)]'
+                  ? 'border-[var(--cyan)] text-[var(--primary-light)]'
                   : 'border-transparent text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]'
               }`}
             >
@@ -329,7 +329,7 @@ ${job.bom.map(item => {
                         </button>
                       </div>
                       {photo.status === 'identifying' && (
-                        <div className="flex items-center gap-1.5 text-[var(--cyan)] text-xs">
+                        <div className="flex items-center gap-1.5 text-[var(--primary-light)] text-xs">
                           <Loader2 className="w-3 h-3 animate-spin" />
                           Identifying...
                         </div>
@@ -382,7 +382,7 @@ ${job.bom.map(item => {
               <button
                 onClick={handleSearch}
                 disabled={searching}
-                className="px-4 py-2 bg-[var(--cyan)] text-[var(--abyss)] font-semibold text-sm rounded-lg disabled:opacity-50 hover:shadow-[0_0_16px_var(--cyan-glow)] transition-all flex items-center gap-2"
+                className="px-4 py-2 bg-[var(--primary)] text-white font-semibold text-sm rounded-lg disabled:opacity-50 hover:bg-[var(--primary-light)] hover:shadow-[0_0_16px_var(--primary-glow)] transition-all flex items-center gap-2"
               >
                 {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
                 Search
@@ -397,7 +397,7 @@ ${job.bom.map(item => {
                   <div key={part.id} className="flex items-center justify-between p-3 rounded-lg bg-[var(--surface)] hover:bg-[var(--surface-hover)] transition-all">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono text-[var(--cyan)]">{part.mpn}</span>
+                        <span className="text-xs font-mono text-[var(--primary-light)]">{part.mpn}</span>
                         <span className="text-xs text-[var(--text-tertiary)]">{part.manufacturer}</span>
                       </div>
                       <div className="text-sm truncate">{part.name}</div>
@@ -410,7 +410,7 @@ ${job.bom.map(item => {
                     </div>
                     <button
                       onClick={() => addSearchResult(part)}
-                      className="px-3 py-1.5 text-xs font-semibold text-[var(--cyan)] border border-[var(--border-active)] rounded-lg hover:bg-[var(--cyan-dim)] transition-all flex items-center gap-1"
+                      className="px-3 py-1.5 text-xs font-semibold text-[var(--primary-light)] border border-[var(--border-active)] rounded-lg hover:bg-[var(--primary-dim)] transition-all flex items-center gap-1"
                     >
                       <Plus className="w-3 h-3" /> Add
                     </button>
@@ -463,7 +463,7 @@ ${job.bom.map(item => {
                           </td>
                           <td>
                             <div className="flex items-center gap-2 mb-0.5">
-                              <span className="text-xs font-mono text-[var(--cyan)]">{item.mpn}</span>
+                              <span className="text-xs font-mono text-[var(--primary-light)]">{item.mpn}</span>
                               {item.confidence && <ConfidenceIndicator score={item.confidence} showLabel={false} />}
                               {item.intelligence?.context?.companion_parts && item.intelligence.context.companion_parts.length > 0 && (
                                 <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/15 text-blue-400 font-medium">+companion parts</span>
@@ -478,7 +478,7 @@ ${job.bom.map(item => {
                             )}
                           </td>
                           <td className="text-[var(--text-secondary)]">{item.manufacturer}</td>
-                          <td className="text-[var(--cyan)] font-semibold">${dp.toFixed(2)}</td>
+                          <td className="text-[var(--primary-light)] font-semibold">${dp.toFixed(2)}</td>
                           <td className="text-[var(--text-tertiary)]">${lp.toFixed(2)}</td>
                           <td className="font-semibold">${(dp * item.quantity).toFixed(2)}</td>
                           <td>
@@ -520,7 +520,7 @@ ${job.bom.map(item => {
                       {bomTotals.items} items • List: ${bomTotals.list.toFixed(2)} •
                       <span className="text-[var(--success)] ml-1">Save ${(bomTotals.list - bomTotals.dealer).toFixed(2)}</span>
                     </div>
-                    <div className="font-bold text-[var(--cyan)] text-base glow-text">
+                    <div className="font-bold text-[var(--primary-light)] text-base glow-text">
                       Total: ${bomTotals.dealer.toFixed(2)}
                     </div>
                   </div>
@@ -545,10 +545,10 @@ ${job.bom.map(item => {
             <div className="glass rounded-xl p-5">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold flex items-center gap-2">
-                  <ClipboardList className="w-4 h-4 text-[var(--cyan)]" />
+                  <ClipboardList className="w-4 h-4 text-[var(--primary-light)]" />
                   Installation Progress
                 </h3>
-                <span className="text-sm font-bold text-[var(--cyan)]">{calculateJobProgress(job)}%</span>
+                <span className="text-sm font-bold text-[var(--primary-light)]">{calculateJobProgress(job)}%</span>
               </div>
               <div className="h-2 rounded-full bg-[var(--surface-2)] overflow-hidden mb-4">
                 <div className="h-full rounded-full bg-[var(--cyan)] transition-all" style={{ width: `${calculateJobProgress(job)}%` }} />
@@ -574,7 +574,7 @@ ${job.bom.map(item => {
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono text-[var(--cyan)]">{item.mpn}</span>
+                          <span className="text-xs font-mono text-[var(--primary-light)]">{item.mpn}</span>
                           <span className="text-xs text-[var(--text-tertiary)]">{item.manufacturer}</span>
                           {item.confidence && <ConfidenceIndicator score={item.confidence} showLabel={false} />}
                           {item.warnings && item.warnings.length > 0 && <WarningBadge warnings={item.warnings} />}
@@ -592,7 +592,7 @@ ${job.bom.map(item => {
                     {item.status === 'received' && (
                       <button
                         onClick={() => setCapturingInstall(item.id)}
-                        className="mt-2 text-xs text-[var(--cyan)] flex items-center gap-1 hover:underline"
+                        className="mt-2 text-xs text-[var(--primary-light)] flex items-center gap-1 hover:underline"
                       >
                         <ShieldCheck className="w-3 h-3" />
                         Record installation details
@@ -642,7 +642,7 @@ ${job.bom.map(item => {
             {/* Time & Cost Tracking */}
             <div className="glass rounded-xl p-5">
               <h3 className="text-sm font-semibold flex items-center gap-2 mb-4">
-                <Clock className="w-4 h-4 text-[var(--cyan)]" />
+                <Clock className="w-4 h-4 text-[var(--primary-light)]" />
                 Time & Cost Tracking
               </h3>
               <div className="grid grid-cols-2 gap-4 mb-4">
@@ -676,7 +676,7 @@ ${job.bom.map(item => {
             {/* Lessons Learned */}
             <div className="glass rounded-xl p-5">
               <h3 className="text-sm font-semibold flex items-center gap-2 mb-4">
-                <BookOpen className="w-4 h-4 text-[var(--cyan)]" />
+                <BookOpen className="w-4 h-4 text-[var(--primary-light)]" />
                 Lessons Learned
               </h3>
               <textarea
@@ -710,7 +710,7 @@ ${job.bom.map(item => {
                       alert(`Template "${name}" saved with ${template.defaultParts.length} parts!`);
                     }
                   }}
-                  className="mt-3 flex items-center gap-2 px-4 py-2 bg-[var(--cyan)]/10 text-[var(--cyan)] text-xs font-semibold rounded-lg hover:bg-[var(--cyan)]/20 transition-all"
+                  className="mt-3 flex items-center gap-2 px-4 py-2 bg-[var(--primary)]/10 text-[var(--primary-light)] text-xs font-semibold rounded-lg hover:bg-[var(--cyan)]/20 transition-all"
                 >
                   <Save className="w-3 h-3" />
                   Save as Template (reuse on future jobs)
@@ -725,7 +725,7 @@ ${job.bom.map(item => {
           <div className="space-y-6 fade-in">
             {/* Summary */}
             <div className="glass rounded-xl p-6">
-              <h3 className="text-sm font-semibold text-[var(--cyan)] uppercase tracking-wider mb-4">Order Summary</h3>
+              <h3 className="text-sm font-semibold text-[var(--primary-light)] uppercase tracking-wider mb-4">Order Summary</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <div className="text-xs text-[var(--text-tertiary)] mb-1">Job</div>
@@ -741,7 +741,7 @@ ${job.bom.map(item => {
                 </div>
                 <div>
                   <div className="text-xs text-[var(--text-tertiary)] mb-1">Dealer Total</div>
-                  <div className="font-bold text-[var(--cyan)] text-xl glow-text">${bomTotals.dealer.toFixed(2)}</div>
+                  <div className="font-bold text-[var(--primary-light)] text-xl glow-text">${bomTotals.dealer.toFixed(2)}</div>
                 </div>
               </div>
             </div>
@@ -749,7 +749,7 @@ ${job.bom.map(item => {
             {/* Vendor breakdown */}
             {job.bom.length > 0 && (
               <div className="glass rounded-xl p-6">
-                <h3 className="text-sm font-semibold text-[var(--cyan)] uppercase tracking-wider mb-4">Vendor Breakdown</h3>
+                <h3 className="text-sm font-semibold text-[var(--primary-light)] uppercase tracking-wider mb-4">Vendor Breakdown</h3>
                 <VendorBreakdown bom={job.bom} />
               </div>
             )}
@@ -786,7 +786,7 @@ ${job.bom.map(item => {
                 disabled={job.bom.length === 0 || (job.bom.some(b => b.intelligence) && !aiDisclaimerAcknowledged)}
                 className="glass rounded-xl p-6 text-left hover:border-[var(--border-active)] transition-all disabled:opacity-30 group"
               >
-                <FileText className="w-8 h-8 text-[var(--cyan)] mb-3 group-hover:scale-110 transition-transform" />
+                <FileText className="w-8 h-8 text-[var(--primary-light)] mb-3 group-hover:scale-110 transition-transform" />
                 <h3 className="font-semibold mb-1">Export CSV</h3>
                 <p className="text-xs text-[var(--text-tertiary)]">Download spreadsheet for vendor ordering or import into accounting</p>
               </button>
@@ -795,7 +795,7 @@ ${job.bom.map(item => {
                 disabled={job.bom.length === 0 || (job.bom.some(b => b.intelligence) && !aiDisclaimerAcknowledged)}
                 className="glass rounded-xl p-6 text-left hover:border-[var(--border-active)] transition-all disabled:opacity-30 group"
               >
-                <Download className="w-8 h-8 text-[var(--cyan)] mb-3 group-hover:scale-110 transition-transform" />
+                <Download className="w-8 h-8 text-[var(--primary-light)] mb-3 group-hover:scale-110 transition-transform" />
                 <h3 className="font-semibold mb-1">Purchase Order PDF</h3>
                 <p className="text-xs text-[var(--text-tertiary)]">Print-ready PO with job details, parts list, and pricing</p>
               </button>
@@ -834,7 +834,7 @@ function VendorBreakdown({ bom }: { bom: BOMItem[] }) {
             </div>
           </div>
           <div className="text-right">
-            <div className="font-bold text-[var(--cyan)]">${data.total.toFixed(2)}</div>
+            <div className="font-bold text-[var(--primary-light)]">${data.total.toFixed(2)}</div>
           </div>
         </div>
       ))}

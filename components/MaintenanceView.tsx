@@ -44,7 +44,7 @@ export function MaintenanceView({ schedules, onMarkPerformed, onAddSchedule }: M
         </div>
         <button
           onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-[var(--cyan)] text-[var(--abyss)] font-semibold text-sm rounded-lg hover:shadow-[0_0_20px_var(--cyan-glow)] transition-all"
+          className="flex items-center gap-2 px-4 py-2.5 bg-[var(--primary)] text-white font-semibold text-sm rounded-lg hover:bg-[var(--primary-light)] hover:shadow-[0_0_20px_var(--primary-glow)] transition-all"
         >
           <Plus className="w-4 h-4" />
           Add Schedule
@@ -69,7 +69,7 @@ export function MaintenanceView({ schedules, onMarkPerformed, onAddSchedule }: M
         </div>
         <div className="glass rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2">
-            <Calendar className="w-4 h-4 text-[var(--cyan)]" />
+            <Calendar className="w-4 h-4 text-[var(--primary-light)]" />
             <span className="text-xs text-[var(--text-tertiary)] uppercase tracking-wider font-medium">Scheduled</span>
           </div>
           <span className="text-2xl font-bold">{schedules.length}</span>
@@ -79,7 +79,7 @@ export function MaintenanceView({ schedules, onMarkPerformed, onAddSchedule }: M
       {/* Add form */}
       {showAdd && (
         <div className="glass rounded-xl p-5 mb-6 fade-in">
-          <h3 className="text-sm font-semibold mb-4 text-[var(--cyan)]">New Maintenance Schedule</h3>
+          <h3 className="text-sm font-semibold mb-4 text-[var(--primary-light)]">New Maintenance Schedule</h3>
           <div className="grid grid-cols-3 gap-3 mb-4">
             <div>
               <label className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium block mb-1.5">Description *</label>
@@ -96,7 +96,7 @@ export function MaintenanceView({ schedules, onMarkPerformed, onAddSchedule }: M
           </div>
           <div className="flex gap-2 justify-end">
             <button onClick={() => setShowAdd(false)} className="px-3 py-1.5 text-xs text-[var(--text-tertiary)]">Cancel</button>
-            <button onClick={handleAdd} className="px-4 py-2 bg-[var(--cyan)] text-[var(--abyss)] text-xs font-semibold rounded-lg">Add</button>
+            <button onClick={handleAdd} className="px-4 py-2 bg-[var(--primary)] text-white text-xs font-semibold rounded-lg">Add</button>
           </div>
         </div>
       )}
