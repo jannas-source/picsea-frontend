@@ -22,7 +22,7 @@ const statusConfig: Record<string, { label: string; color: string; dotClass: str
   draft: { label: 'Draft', color: 'var(--text-tertiary)', dotClass: 'status-draft' },
   active: { label: 'Active', color: 'var(--success)', dotClass: 'status-active' },
   ordered: { label: 'Ordered', color: 'var(--warning)', dotClass: 'status-pending' },
-  installing: { label: 'Installing', color: 'var(--primary-light)', dotClass: 'status-active' },
+  installing: { label: 'Installing', color: 'var(--cyan)', dotClass: 'status-active' },
   complete: { label: 'Complete', color: 'var(--text-tertiary)', dotClass: 'status-draft' },
 };
 
@@ -74,16 +74,16 @@ export function Dashboard({ jobs, onOpenJob, onAddJob, onDeleteJob }: DashboardP
   return (
     <div className="max-w-5xl mx-auto px-5 py-8 fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between mb-10">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-1.5">Jobs</h1>
+          <h1 className="text-2xl font-bold tracking-tight mb-1">Jobs</h1>
           <p className="text-sm text-[var(--text-tertiary)]">
             Manage procurement across all active projects
           </p>
         </div>
         <button
           onClick={() => { setShowNew(true); setShowTemplates(true); }}
-          className="flex items-center gap-2 px-5 py-2.5 bg-[var(--primary)] text-white font-semibold text-sm rounded-lg hover:bg-[var(--primary-light)] hover:shadow-[0_0_24px_var(--primary-glow)] transition-all"
+          className="flex items-center gap-2 px-4 py-2.5 bg-[var(--cyan)] text-[var(--abyss)] font-semibold text-sm rounded-lg hover:shadow-[0_0_20px_var(--cyan-glow)] transition-all"
         >
           <Plus className="w-4 h-4" />
           New Job
@@ -91,17 +91,19 @@ export function Dashboard({ jobs, onOpenJob, onAddJob, onDeleteJob }: DashboardP
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-6 mb-10">
+      <div className="grid grid-cols-4 gap-4 mb-8">
         {[
-          { icon: Briefcase, label: 'Active Jobs', value: activeJobs.length, color: 'var(--success)' },
-          { icon: CheckCircle, label: 'Completed', value: completedJobs.length, color: 'var(--primary-light)' },
+          { icon: Briefcase, label: 'Active', value: activeJobs.length, color: 'var(--success)' },
+          { icon: Package, label: 'Parts', value: totalParts, color: 'var(--cyan)' },
+          { icon: CheckCircle, label: 'Completed', value: completedJobs.length, color: 'var(--text-secondary)' },
+          { icon: AlertTriangle, label: 'Warnings', value: warningCount, color: warningCount > 0 ? 'var(--warning)' : 'var(--text-tertiary)' },
         ].map(stat => (
-          <div key={stat.label} className="glass rounded-2xl p-6">
-            <div className="flex items-center gap-2.5 mb-3">
-              <stat.icon className="w-5 h-5" style={{ color: stat.color }} />
+          <div key={stat.label} className="glass rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <stat.icon className="w-4 h-4" style={{ color: stat.color }} />
               <span className="text-xs text-[var(--text-tertiary)] uppercase tracking-wider font-medium">{stat.label}</span>
             </div>
-            <span className="text-4xl font-bold tracking-tight">{stat.value}</span>
+            <span className="text-2xl font-bold">{stat.value}</span>
           </div>
         ))}
       </div>
@@ -109,7 +111,7 @@ export function Dashboard({ jobs, onOpenJob, onAddJob, onDeleteJob }: DashboardP
       {/* New Job Form */}
       {showNew && (
         <div className="glass rounded-xl p-5 mb-6 fade-in">
-          <h3 className="text-sm font-semibold mb-4 text-[var(--primary-light)]">New Job</h3>
+          <h3 className="text-sm font-semibold mb-4 text-[var(--cyan)]">New Job</h3>
           
           {/* Template selector */}
           {showTemplates && templates.length > 0 && (
@@ -124,8 +126,8 @@ export function Dashboard({ jobs, onOpenJob, onAddJob, onDeleteJob }: DashboardP
 
           {/* Selected template badge */}
           {selectedTemplate && (
-            <div className="flex items-center gap-2 mb-4 p-2 rounded-lg bg-[var(--primary)]/5 border border-[var(--primary)]/20">
-              <FileText className="w-4 h-4 text-[var(--primary-light)]" />
+            <div className="flex items-center gap-2 mb-4 p-2 rounded-lg bg-[var(--cyan)]/5 border border-[var(--cyan)]/20">
+              <FileText className="w-4 h-4 text-[var(--cyan)]" />
               <span className="text-xs">Template: <strong>{selectedTemplate.name}</strong> ({selectedTemplate.defaultParts.length} parts)</span>
               <button onClick={() => setSelectedTemplate(undefined)} className="text-xs text-[var(--text-tertiary)] ml-auto">×</button>
             </div>
@@ -153,7 +155,7 @@ export function Dashboard({ jobs, onOpenJob, onAddJob, onDeleteJob }: DashboardP
           <div className="mb-4">
             <button
               onClick={() => setShowVesselForm(!showVesselForm)}
-              className="flex items-center gap-2 text-xs text-[var(--primary-light)] hover:underline mb-2"
+              className="flex items-center gap-2 text-xs text-[var(--cyan)] hover:underline mb-2"
             >
               <Ship className="w-3 h-3" />
               {showVesselForm ? 'Hide' : 'Add'} vessel details (enables compatibility checks)
@@ -167,7 +169,7 @@ export function Dashboard({ jobs, onOpenJob, onAddJob, onDeleteJob }: DashboardP
                   <button
                     key={v.name}
                     onClick={() => handleSelectSavedVessel(v)}
-                    className="text-[10px] px-2 py-1 rounded-full bg-[var(--surface-2)] text-[var(--text-secondary)] hover:bg-[var(--primary)]/10 hover:text-[var(--primary-light)] transition-all"
+                    className="text-[10px] px-2 py-1 rounded-full bg-[var(--surface-2)] text-[var(--text-secondary)] hover:bg-[var(--cyan)]/10 hover:text-[var(--cyan)] transition-all"
                   >
                     {v.name || `${v.make} ${v.model}`}
                   </button>
@@ -188,7 +190,7 @@ export function Dashboard({ jobs, onOpenJob, onAddJob, onDeleteJob }: DashboardP
 
           <div className="flex gap-2">
             <button onClick={handleCreate} disabled={!newName.trim()}
-              className="px-4 py-2 bg-[var(--primary)] text-white font-semibold text-sm rounded-lg disabled:opacity-30 hover:bg-[var(--primary-light)] hover:shadow-[0_0_16px_var(--primary-glow)] transition-all">
+              className="px-4 py-2 bg-[var(--cyan)] text-[var(--abyss)] font-semibold text-sm rounded-lg disabled:opacity-30 hover:shadow-[0_0_16px_var(--cyan-glow)] transition-all">
               Create Job
             </button>
             <button onClick={() => { setShowNew(false); setShowTemplates(false); setSelectedTemplate(undefined); setShowVesselForm(false); }}
@@ -201,15 +203,13 @@ export function Dashboard({ jobs, onOpenJob, onAddJob, onDeleteJob }: DashboardP
 
       {/* Job List */}
       {jobs.length === 0 ? (
-        <div className="glass rounded-2xl p-16 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-[var(--primary-dim)] flex items-center justify-center mx-auto mb-6">
-            <Camera className="w-8 h-8 text-[var(--primary-light)]" />
-          </div>
-          <h3 className="text-xl font-semibold mb-2 text-[var(--text-primary)]">Ready to identify your first part?</h3>
-          <p className="text-sm text-[var(--text-tertiary)] mb-8 max-w-sm mx-auto">Snap a photo, get instant part identification and sourcing across top marine suppliers.</p>
+        <div className="glass rounded-xl p-16 text-center">
+          <Ship className="w-12 h-12 text-[var(--text-tertiary)] mx-auto mb-4 opacity-40" />
+          <h3 className="text-lg font-semibold mb-2 text-[var(--text-secondary)]">No jobs yet</h3>
+          <p className="text-sm text-[var(--text-tertiary)] mb-6">Create your first job to start photographing and sourcing parts.</p>
           <button onClick={() => { setShowNew(true); setShowTemplates(true); }}
-            className="px-6 py-3 bg-[var(--primary)] text-white font-semibold text-sm rounded-lg hover:bg-[var(--primary-light)] hover:shadow-[0_0_24px_var(--primary-glow)] transition-all hover:scale-[1.02] active:scale-[0.98]">
-            <Plus className="w-4 h-4 inline mr-2" />Start First Job
+            className="px-5 py-2.5 bg-[var(--cyan)] text-[var(--abyss)] font-semibold text-sm rounded-lg hover:shadow-[0_0_20px_var(--cyan-glow)] transition-all">
+            <Plus className="w-4 h-4 inline mr-1.5" />Create First Job
           </button>
         </div>
       ) : (
@@ -225,7 +225,7 @@ export function Dashboard({ jobs, onOpenJob, onAddJob, onDeleteJob }: DashboardP
 
             return (
               <div key={job.id} onClick={() => onOpenJob(job.id)}
-                className="glass rounded-2xl p-5 cursor-pointer hover:border-[var(--border-active)] transition-all group">
+                className="glass rounded-xl p-4 cursor-pointer hover:border-[var(--border-active)] transition-all group">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4 flex-1 min-w-0">
                     <div className={`status-dot flex-shrink-0 ${sc.dotClass}`} />
@@ -256,7 +256,7 @@ export function Dashboard({ jobs, onOpenJob, onAddJob, onDeleteJob }: DashboardP
                       {job.bom.length > 0 && job.status !== 'complete' && (
                         <div className="mt-2 flex items-center gap-2">
                           <div className="flex-1 h-1 rounded-full bg-[var(--surface-2)] overflow-hidden">
-                            <div className="h-full rounded-full bg-[var(--primary-light)] transition-all" style={{ width: `${progress}%` }} />
+                            <div className="h-full rounded-full bg-[var(--cyan)] transition-all" style={{ width: `${progress}%` }} />
                           </div>
                           <span className="text-[10px] text-[var(--text-tertiary)]">{progress}%</span>
                         </div>
@@ -274,7 +274,7 @@ export function Dashboard({ jobs, onOpenJob, onAddJob, onDeleteJob }: DashboardP
                       <div>parts</div>
                     </div>
                     <div className="text-center">
-                      <div className="font-semibold text-[var(--primary-light)] text-sm">${bomTotal.toFixed(0)}</div>
+                      <div className="font-semibold text-[var(--cyan)] text-sm">${bomTotal.toFixed(0)}</div>
                       <div>est.</div>
                     </div>
                     <button

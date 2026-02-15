@@ -136,7 +136,7 @@ export function ItemStatusTracker({ status, onStatusChange }: ItemStatusTrackerP
               className={`
                 flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all
                 ${isComplete ? 'bg-[var(--success)]/20 text-[var(--success)]' : ''}
-                ${isCurrent ? 'bg-[var(--cyan)]/20 text-[var(--primary-light)] ring-1 ring-[var(--cyan)]/30' : ''}
+                ${isCurrent ? 'bg-[var(--cyan)]/20 text-[var(--cyan)] ring-1 ring-[var(--cyan)]/30' : ''}
                 ${!isComplete && !isCurrent ? 'bg-[var(--surface-2)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]' : ''}
                 ${isFailed ? 'bg-red-500/20 text-red-400' : ''}
               `}
@@ -178,7 +178,7 @@ export function InstallCapture({ itemId, partName, onSubmit, onCancel }: Install
   return (
     <div className="glass rounded-xl p-5 fade-in">
       <div className="flex items-center gap-2 mb-4">
-        <ShieldCheck className="w-5 h-5 text-[var(--primary-light)]" />
+        <ShieldCheck className="w-5 h-5 text-[var(--cyan)]" />
         <h3 className="text-sm font-semibold">Installation Capture: {partName}</h3>
       </div>
       
@@ -237,7 +237,7 @@ export function InstallCapture({ itemId, partName, onSubmit, onCancel }: Install
         <button onClick={onCancel} className="px-3 py-1.5 text-xs text-[var(--text-tertiary)]">Cancel</button>
         <button
           onClick={() => onSubmit({ hoursTaken: parseFloat(hours) || 0, outcome, notes })}
-          className="px-4 py-1.5 bg-[var(--primary)] text-white text-xs font-semibold rounded-lg"
+          className="px-4 py-1.5 bg-[var(--cyan)] text-[var(--abyss)] text-xs font-semibold rounded-lg"
         >
           Record Installation
         </button>
@@ -309,8 +309,8 @@ export function IntelligencePanel({ intelligence, partName, compact = false }: I
         className="w-full flex items-center justify-between p-3 hover:bg-[var(--surface-hover)] transition-colors text-left"
       >
         <div className="flex items-center gap-2">
-          <Zap className="w-3.5 h-3.5 text-[var(--primary-light)]" />
-          <span className="text-xs font-semibold text-[var(--primary-light)]">AI Intelligence</span>
+          <Zap className="w-3.5 h-3.5 text-[var(--cyan)]" />
+          <span className="text-xs font-semibold text-[var(--cyan)]">AI Intelligence</span>
           {isExpertSourced && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-500/15 text-green-400 font-medium">Expert data</span>}
           {hasWarnings && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
           {hasUpgrade && <ArrowUpCircle className="w-3 h-3 text-blue-400" />}

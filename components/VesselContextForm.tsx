@@ -358,7 +358,7 @@ export function VesselContextForm({ vessel, onChange, onSave, compact = false }:
         </datalist>
         <button
           onClick={addEngine}
-          className="mt-3 flex items-center gap-1.5 text-xs text-[var(--primary-light)] hover:underline"
+          className="mt-3 flex items-center gap-1.5 text-xs text-[var(--cyan)] hover:underline"
         >
           <Plus className="w-3 h-3" /> Add engine
         </button>
@@ -441,7 +441,7 @@ export function VesselContextForm({ vessel, onChange, onSave, compact = false }:
       {onSave && (
         <button
           onClick={() => onSave(vessel)}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--primary)] text-white font-semibold text-sm rounded-lg hover:bg-[var(--primary-light)] hover:shadow-[0_0_20px_var(--primary-glow)] transition-all mt-4"
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--cyan)] text-[var(--abyss)] font-semibold text-sm rounded-lg hover:shadow-[0_0_20px_var(--cyan-glow)] transition-all mt-4"
         >
           <Save className="w-4 h-4" />
           Save Vessel Profile
@@ -480,10 +480,10 @@ function AccordionSection({ title, icon: Icon, expanded, onToggle, children, bad
         onClick={onToggle}
         className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[var(--surface-hover)] transition-colors"
       >
-        <Icon className="w-4 h-4 text-[var(--primary-light)]" />
+        <Icon className="w-4 h-4 text-[var(--cyan)]" />
         <span className="text-sm font-semibold flex-1 text-left">{title}</span>
         {badge && (
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary-light)] font-medium">
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--cyan)]/10 text-[var(--cyan)] font-medium">
             {badge}
           </span>
         )}

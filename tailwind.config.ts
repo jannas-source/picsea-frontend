@@ -9,11 +9,9 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        "primary": "#1E40AF",
-        "primary-light": "#2563EB",
-        "accent-cyan": "#38BDF8",
-        "deep-abyss-blue": "#0B1120",
-        "oceanic-navy": "#0F1D32",
+        "bioluminescent-cyan": "#00F0FF",
+        "deep-abyss-blue": "#000C18",
+        "oceanic-navy": "#002B45",
         "pure-white": "#FFFFFF",
       },
     },

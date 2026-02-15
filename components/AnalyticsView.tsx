@@ -77,7 +77,7 @@ export function AnalyticsView({ jobs }: AnalyticsViewProps) {
       {completed.length > 0 && (
         <div className="glass rounded-xl p-5 mb-6">
           <div className="flex items-center gap-2 mb-4">
-            <BarChart3 className="w-4 h-4 text-[var(--primary-light)]" />
+            <BarChart3 className="w-4 h-4 text-[var(--cyan)]" />
             <h2 className="text-sm font-semibold">Job Performance</h2>
           </div>
           
@@ -125,7 +125,7 @@ export function AnalyticsView({ jobs }: AnalyticsViewProps) {
       {completed.filter(j => j.lessonsLearned).length > 0 && (
         <div className="glass rounded-xl p-5">
           <div className="flex items-center gap-2 mb-4">
-            <Target className="w-4 h-4 text-[var(--primary-light)]" />
+            <Target className="w-4 h-4 text-[var(--cyan)]" />
             <h2 className="text-sm font-semibold">Lessons Learned</h2>
           </div>
           <div className="space-y-3">

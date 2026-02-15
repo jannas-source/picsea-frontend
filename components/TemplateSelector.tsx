@@ -17,7 +17,7 @@ export function TemplateSelector({ templates, onSelect, onSkip }: TemplateSelect
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Zap className="w-4 h-4 text-[var(--primary-light)]" />
+          <Zap className="w-4 h-4 text-[var(--cyan)]" />
           <span className="text-sm font-semibold">Start from Template</span>
         </div>
         <button onClick={onSkip} className="text-xs text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]">
@@ -68,7 +68,7 @@ export function TemplateSelector({ templates, onSelect, onSkip }: TemplateSelect
                 </div>
                 <button
                   onClick={() => onSelect(t)}
-                  className="w-full px-3 py-2 bg-[var(--primary)] text-white text-xs font-semibold rounded-lg"
+                  className="w-full px-3 py-2 bg-[var(--cyan)] text-[var(--abyss)] text-xs font-semibold rounded-lg"
                 >
                   Use Template
                 </button>
