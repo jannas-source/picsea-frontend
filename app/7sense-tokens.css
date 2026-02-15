@@ -1,0 +1,117 @@
+/**
+ * 7-SENSE Design System Tokens
+ * Refined Kit 2026 - Bioluminescent Theme
+ * 
+ * SINGLE SOURCE OF TRUTH for all 7-SENSE products
+ * 
+ * Products importing this file:
+ * - 7-SENSE Landing Page (https://7sense-landing.vercel.app)
+ * - PicSea (https://picsea.app)
+ * - MarineForce (future)
+ * - PowerFlow (future)
+ * 
+ * DO NOT modify colors here without updating all consuming projects.
+ * Reference: /MySealium/03_DESIGN/Brand/Refined_Kit_2026/
+ */
+
+:root {
+  /* === PRIMARY COLORS === */
+  --color-bioluminescent-cyan: #00F0FF;
+  --color-deep-abyss-blue: #000C18;
+  --color-oceanic-navy: #002B45;
+  --color-pure-white: #FFFFFF;
+
+  /* === DERIVED COLORS (computed from primary) === */
+  --cyan: #00F0FF;
+  --cyan-dim: rgba(0, 240, 255, 0.15);
+  --cyan-glow: rgba(0, 240, 255, 0.4);
+  --primary: #00F0FF;
+  --primary-light: #4DFAFF;
+  --primary-dim: rgba(0, 240, 255, 0.15);
+  --primary-glow: rgba(0, 240, 255, 0.4);
+
+  /* === BACKGROUNDS === */
+  --abyss: #000C18;
+  --navy: #002B45;
+  --navy-light: #003A5C;
+
+  /* === SURFACES (glassmorphism) === */
+  --surface: rgba(255, 255, 255, 0.03);
+  --surface-2: rgba(0, 43, 69, 0.4);
+  --surface-hover: rgba(255, 255, 255, 0.06);
+
+  /* === BORDERS === */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-active: rgba(0, 240, 255, 0.3);
+
+  /* === TEXT === */
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-tertiary: rgba(255, 255, 255, 0.45);
+
+  /* === SEMANTIC COLORS === */
+  --success: #34D399;
+  --warning: #FBBF24;
+  --danger: #F87171;
+  --error: #F87171;
+
+  /* === TYPOGRAPHY === */
+  --font-primary: 'Montserrat', 'Gotham', 'Avant Garde', sans-serif;
+  --font-secondary: 'Roboto', 'Open Sans', 'Inter', sans-serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* === TAILWIND v4 THEME TOKENS (for landing page) === */
+@theme {
+  --color-brand-cyan: #00F0FF;
+  --color-brand-navy: #000C18;
+  --color-brand-navy-light: #002B45;
+}
+
+/* === UTILITY CLASSES === */
+
+/* Glass effect (for React components) */
+.glass {
+  background: rgba(0, 43, 69, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+}
+
+.glass-light {
+  background: rgba(0, 43, 69, 0.25);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+}
+
+/* Tailwind-compatible glass card (for landing page) */
+.glass-card {
+  background: rgba(0, 43, 69, 0.4);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Text gradient (bioluminescent effect) */
+.text-gradient {
+  background: linear-gradient(to right, var(--cyan), #4DFAFF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Grid background (landing page) */
+.grid-bg {
+  background-image: 
+    linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Glow effects */
+.glow-cyan {
+  box-shadow: 0 0 20px var(--cyan-glow), 0 0 60px rgba(0, 240, 255, 0.1);
+}
+
+.glow-text {
+  text-shadow: 0 0 20px var(--cyan-glow);
+}

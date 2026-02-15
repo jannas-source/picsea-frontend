@@ -1,5 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap');
 
+/* 7-SENSE Centralized Design Tokens (Refined Kit 2026) */
+@import "./7sense-tokens.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,31 +11,6 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-}
-
-:root {
-  /* 7-SENSE Refined Kit 2026 - Bioluminescent Theme */
-  --cyan: #00F0FF;
-  --cyan-dim: rgba(0, 240, 255, 0.15);
-  --cyan-glow: rgba(0, 240, 255, 0.4);
-  --primary: #00F0FF;
-  --primary-light: #4DFAFF;
-  --primary-dim: rgba(0, 240, 255, 0.15);
-  --primary-glow: rgba(0, 240, 255, 0.4);
-  --abyss: #000C18;
-  --navy: #002B45;
-  --navy-light: #003A5C;
-  --surface: rgba(255, 255, 255, 0.03);
-  --surface-2: rgba(0, 43, 69, 0.4);
-  --surface-hover: rgba(255, 255, 255, 0.06);
-  --border: rgba(255, 255, 255, 0.08);
-  --border-active: rgba(0, 240, 255, 0.3);
-  --text-primary: #FFFFFF;
-  --text-secondary: rgba(255, 255, 255, 0.7);
-  --text-tertiary: rgba(255, 255, 255, 0.45);
-  --success: #34D399;
-  --warning: #FBBF24;
-  --danger: #F87171;
 }
 
 body {
@@ -56,29 +34,6 @@ h1, h2, h3 {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--navy); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
-
-/* Glass effect */
-.glass {
-  background: rgba(0, 43, 69, 0.4);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
-}
-
-.glass-light {
-  background: rgba(0, 43, 69, 0.25);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
-}
-
-/* Glow effects */
-.glow-cyan {
-  box-shadow: 0 0 20px var(--cyan-glow), 0 0 60px rgba(0, 240, 255, 0.1);
-}
-
-.glow-text {
-  text-shadow: 0 0 20px var(--cyan-glow);
-}
 
 /* Status indicators */
 .status-dot {
