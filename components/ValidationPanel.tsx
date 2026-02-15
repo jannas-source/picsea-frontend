@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { BOMItem, ValidationWarning, Installation } from "@/lib/types";
+import { BOMItem, ValidationWarning, Installation, PartIntelligence } from "@/lib/types";
 import {
   AlertTriangle, AlertCircle, Info, CheckCircle, XCircle,
-  ShieldCheck, Clock, Camera, MessageSquare, Star
+  ShieldCheck, Clock, Camera, MessageSquare, Star,
+  Wrench, Zap, ArrowUpCircle, Package, ChevronDown, ChevronUp
 } from "lucide-react";
 
 // ============================================================================
@@ -264,5 +265,147 @@ export function ConfidenceIndicator({ score, showLabel = true }: ConfidenceProps
       <span className={`w-1.5 h-1.5 rounded-full ${bg}`} />
       {pct}%{showLabel && pct < 90 && <span className="text-[var(--text-tertiary)]">— verify before ordering</span>}
     </span>
+  );
+}
+
+// ============================================================================
+// PART INTELLIGENCE PANEL (rich AI intelligence display)
+// ============================================================================
+
+interface IntelligencePanelProps {
+  intelligence: PartIntelligence;
+  partName: string;
+  compact?: boolean;
+}
+
+export function IntelligencePanel({ intelligence, partName, compact = false }: IntelligencePanelProps) {
+  const [expanded, setExpanded] = useState(!compact);
+  const ctx = intelligence.context;
+  const src = intelligence.sourcing;
+  
+  if (!ctx && !src) return null;
+  
+  const hasWarnings = ctx?.compatibility_warning || ctx?.common_mistakes;
+  const hasUpgrade = ctx?.upgrade_recommendation;
+  const sourceLabel = intelligence.source_attribution || 'AI inference';
+  const isExpertSourced = intelligence.expert_knowledge && intelligence.expert_knowledge.length > 0;
+  
+  return (
+    <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
+      {/* ⚠️ AI Safety Disclaimer — always visible */}
+      <div className="px-3 py-2 bg-amber-500/10 border-b border-amber-500/20 flex items-start gap-2">
+        <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+        <div className="text-[10px] text-amber-300/90 leading-relaxed">
+          <span className="font-semibold">⚠️ AI-generated guidance.</span> Always verify torque specs and procedures with manufacturer documentation before installation.
+          <span className="block mt-0.5 text-[var(--text-tertiary)]">
+            Source: {isExpertSourced ? `📚 ${sourceLabel}` : `🤖 ${sourceLabel}`}
+          </span>
+        </div>
+      </div>
+      
+      {/* Header - always visible */}
+      <button 
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between p-3 hover:bg-[var(--surface-hover)] transition-colors text-left"
+      >
+        <div className="flex items-center gap-2">
+          <Zap className="w-3.5 h-3.5 text-[var(--cyan)]" />
+          <span className="text-xs font-semibold text-[var(--cyan)]">AI Intelligence</span>
+          {isExpertSourced && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-500/15 text-green-400 font-medium">Expert data</span>}
+          {hasWarnings && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
+          {hasUpgrade && <ArrowUpCircle className="w-3 h-3 text-blue-400" />}
+        </div>
+        {expanded ? <ChevronUp className="w-3 h-3 text-[var(--text-tertiary)]" /> : <ChevronDown className="w-3 h-3 text-[var(--text-tertiary)]" />}
+      </button>
+      
+      {expanded && (
+        <div className="px-3 pb-3 space-y-3 text-xs">
+          {/* Compatibility Warning - most critical, show first */}
+          {ctx?.compatibility_warning && (
+            <div className="flex items-start gap-2 p-2 rounded bg-amber-500/10 border border-amber-500/20">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <div className="font-semibold text-amber-400 mb-0.5">Compatibility Check</div>
+                <div className="text-[var(--text-secondary)]">{ctx.compatibility_warning}</div>
+              </div>
+            </div>
+          )}
+          
+          {/* Companion parts - prevents missing items */}
+          {ctx?.companion_parts && ctx.companion_parts.length > 0 && (
+            <div className="flex items-start gap-2 p-2 rounded bg-blue-500/10 border border-blue-500/20">
+              <Package className="w-3.5 h-3.5 text-blue-400 shrink-0 mt-0.5" />
+              <div>
+                <div className="font-semibold text-blue-400 mb-0.5">Order Together</div>
+                <div className="text-[var(--text-secondary)]">{ctx.companion_parts.join(' • ')}</div>
+              </div>
+            </div>
+          )}
+
+          {/* Failure intelligence */}
+          {ctx?.failure_mode && (
+            <div>
+              <div className="font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-1">Why It Fails</div>
+              <div className="text-[var(--text-secondary)]">{ctx.failure_mode}</div>
+              {ctx.failure_timeline && <div className="text-[var(--text-tertiary)] mt-0.5">⏱ {ctx.failure_timeline}</div>}
+              {ctx.failure_consequence && <div className="text-red-400/80 mt-0.5">⚠ If it fails: {ctx.failure_consequence}</div>}
+            </div>
+          )}
+          
+          {/* Installation guidance */}
+          {ctx?.installation_notes && (
+            <div>
+              <div className="font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-1">
+                <Wrench className="w-3 h-3 inline mr-1" />Installation
+              </div>
+              <div className="text-[var(--text-secondary)]">{ctx.installation_notes}</div>
+              <div className="flex gap-3 mt-1 text-[var(--text-tertiary)]">
+                {ctx.installation_time_pro && <span>Pro: {ctx.installation_time_pro}</span>}
+                {ctx.installation_time_diy && <span>DIY: {ctx.installation_time_diy}</span>}
+              </div>
+            </div>
+          )}
+          
+          {/* Common mistakes */}
+          {ctx?.common_mistakes && (
+            <div className="p-2 rounded bg-red-500/5 border border-red-500/15">
+              <div className="font-semibold text-red-400/80 mb-0.5">❌ Common Mistakes</div>
+              <div className="text-[var(--text-secondary)]">{ctx.common_mistakes}</div>
+            </div>
+          )}
+          
+          {/* Upgrade recommendation */}
+          {ctx?.upgrade_recommendation && (
+            <div>
+              <div className="font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-1">
+                <ArrowUpCircle className="w-3 h-3 inline mr-1" />Upgrade Option
+              </div>
+              <div className="text-[var(--text-secondary)]">{ctx.upgrade_recommendation}</div>
+            </div>
+          )}
+          
+          {/* Sourcing */}
+          {src && (
+            <div className="pt-2 border-t border-[var(--border)]">
+              <div className="font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-1">Sourcing</div>
+              <div className="space-y-0.5 text-[var(--text-secondary)]">
+                {src.preferred_supplier_type && <div>🏪 {src.preferred_supplier_type}</div>}
+                {src.material_preference && <div>🔩 {src.material_preference}</div>}
+                {src.verification_needed && <div>✅ Verify: {src.verification_needed}</div>}
+                {src.cross_reference && <div>🔄 Alt: {src.cross_reference}</div>}
+                {src.estimated_price_range && <div>💰 {src.estimated_price_range}</div>}
+              </div>
+            </div>
+          )}
+
+          {/* Confidence reasoning */}
+          {intelligence.confidence_reasoning && (
+            <div className="text-[var(--text-tertiary)] italic pt-1 border-t border-[var(--border)]">
+              ID basis: {intelligence.confidence_reasoning}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

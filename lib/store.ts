@@ -105,6 +105,7 @@ export function partToBOMItem(part: IdentifiedPart, photoId?: string): BOMItem {
     confirmed: false,
     status: 'pending',
     confidence: part.confidence,
+    intelligence: part.intelligence,
     warnings: [],
   };
 }
@@ -247,11 +248,14 @@ function defaultPrefs(): UserPreferences {
 // API CALLS (identify & search)
 // ============================================================================
 
-export async function identifyPhoto(dataUrl: string): Promise<{ parts: IdentifiedPart[]; notes?: string }> {
+export async function identifyPhoto(dataUrl: string, vesselContext?: any): Promise<{ parts: IdentifiedPart[]; notes?: string; systemContext?: string; jobRecommendation?: string }> {
   const res = await fetch(dataUrl);
   const blob = await res.blob();
   const formData = new FormData();
   formData.append('image', blob, 'photo.jpg');
+  if (vesselContext) {
+    formData.append('vessel_context', JSON.stringify(vesselContext));
+  }
 
   const apiRes = await fetch('https://api.picsea.app/api/identify', {
     method: 'POST',
@@ -259,7 +263,25 @@ export async function identifyPhoto(dataUrl: string): Promise<{ parts: Identifie
   });
   const data = await apiRes.json();
   if (!apiRes.ok) throw new Error(data.error || 'Identification failed');
-  return { parts: data.parts || [], notes: data.analysis?.notes };
+  
+  // Map API response parts to include intelligence
+  const parts = (data.parts || []).map((p: any) => ({
+    ...p,
+    intelligence: p.intelligence || {
+      context: data.analysis?.parts?.find((ap: any) => ap.model_number === p.mpn || ap.manufacturer === p.manufacturer)?.context,
+      sourcing: data.analysis?.parts?.find((ap: any) => ap.model_number === p.mpn || ap.manufacturer === p.manufacturer)?.sourcing,
+      confidence_reasoning: data.analysis?.parts?.find((ap: any) => ap.model_number === p.mpn || ap.manufacturer === p.manufacturer)?.confidence_reasoning,
+      system_context: data.analysis?.system_context,
+      job_recommendation: data.analysis?.job_recommendation,
+    }
+  }));
+  
+  return { 
+    parts, 
+    notes: data.analysis?.notes,
+    systemContext: data.analysis?.system_context,
+    jobRecommendation: data.analysis?.job_recommendation,
+  };
 }
 
 export async function searchParts(query: string): Promise<IdentifiedPart[]> {

@@ -19,11 +19,39 @@ export interface IdentifiedPart {
   confidence: number;
   category_name?: string;
   listings?: Listing[];
+  intelligence?: PartIntelligence;
 }
 
 // ============================================================================
 // BOM ITEMS (with verification status)
 // ============================================================================
+
+export interface PartIntelligence {
+  context?: {
+    failure_mode?: string;
+    failure_timeline?: string;
+    failure_consequence?: string;
+    upgrade_recommendation?: string;
+    installation_notes?: string;
+    installation_time_pro?: string;
+    installation_time_diy?: string;
+    compatibility_warning?: string;
+    companion_parts?: string[];
+    common_mistakes?: string;
+  };
+  sourcing?: {
+    preferred_supplier_type?: string;
+    material_preference?: string;
+    verification_needed?: string;
+    cross_reference?: string;
+    estimated_price_range?: string;
+  };
+  system_context?: string;
+  job_recommendation?: string;
+  confidence_reasoning?: string;
+  source_attribution?: string;
+  expert_knowledge?: any[];
+}
 
 export interface BOMItem {
   id: string;
@@ -43,6 +71,8 @@ export interface BOMItem {
   unitCostCents?: number;
   installerNotes?: string;
   confidence?: number;
+  // AI Intelligence
+  intelligence?: PartIntelligence;
   // Warnings from pre-order validation
   warnings?: ValidationWarning[];
 }
@@ -105,11 +135,25 @@ export interface Installation {
 // JOBS (extended with lifecycle tracking)
 // ============================================================================
 
+export interface VesselContext {
+  name?: string;
+  make?: string;
+  model?: string;
+  year?: number;
+  voltage?: number;  // 12 or 24
+  engine?: string;
+  fuel_type?: string;
+  hull_material?: string;
+  thread_standard?: string; // NPT or BSP
+  systems?: string;
+}
+
 export interface Job {
   id: string;
   name: string;
   vessel: string;
   vesselId?: string;
+  vesselContext?: VesselContext;
   client: string;
   status: JobStatus;
   priority: 'low' | 'normal' | 'critical';

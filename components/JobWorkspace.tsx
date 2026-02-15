@@ -30,6 +30,7 @@ export function JobWorkspace({ job, onUpdate, onBack }: JobWorkspaceProps) {
   const [lessonsLearned, setLessonsLearned] = useState(job.lessonsLearned || '');
   const [jobNotes, setJobNotes] = useState(job.notes || '');
   const [actualHours, setActualHours] = useState(job.actualHours?.toString() || '');
+  const [aiDisclaimerAcknowledged, setAiDisclaimerAcknowledged] = useState(false);
 
   // --- Photo handling ---
   const handleFiles = useCallback(async (files: FileList) => {
@@ -749,11 +750,36 @@ ${job.bom.map(item => {
               </div>
             )}
 
+            {/* AI Disclaimer Acknowledgment */}
+            {job.bom.some(b => b.intelligence) && (
+              <div className="glass rounded-xl p-5 border border-amber-500/20 bg-amber-500/5">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={aiDisclaimerAcknowledged}
+                    onChange={e => setAiDisclaimerAcknowledged(e.target.checked)}
+                    className="mt-1 w-4 h-4 rounded border-amber-500/50 accent-amber-500"
+                  />
+                  <div>
+                    <p className="text-sm font-semibold text-amber-400 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4" />
+                      AI Recommendations Disclaimer
+                    </p>
+                    <p className="text-xs text-[var(--text-secondary)] mt-1">
+                      I understand that AI-generated part recommendations, torque specifications, and installation guidance 
+                      must be verified with manufacturer documentation before installation. 7-Sense Marine provides AI assistance 
+                      tools, not certified marine engineering advice.
+                    </p>
+                  </div>
+                </label>
+              </div>
+            )}
+
             {/* Export buttons */}
             <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={exportCSV}
-                disabled={job.bom.length === 0}
+                disabled={job.bom.length === 0 || (job.bom.some(b => b.intelligence) && !aiDisclaimerAcknowledged)}
                 className="glass rounded-xl p-6 text-left hover:border-[var(--border-active)] transition-all disabled:opacity-30 group"
               >
                 <FileText className="w-8 h-8 text-[var(--cyan)] mb-3 group-hover:scale-110 transition-transform" />
@@ -762,7 +788,7 @@ ${job.bom.map(item => {
               </button>
               <button
                 onClick={exportPDF}
-                disabled={job.bom.length === 0}
+                disabled={job.bom.length === 0 || (job.bom.some(b => b.intelligence) && !aiDisclaimerAcknowledged)}
                 className="glass rounded-xl p-6 text-left hover:border-[var(--border-active)] transition-all disabled:opacity-30 group"
               >
                 <Download className="w-8 h-8 text-[var(--cyan)] mb-3 group-hover:scale-110 transition-transform" />
