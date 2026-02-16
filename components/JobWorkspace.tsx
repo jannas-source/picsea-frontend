@@ -241,602 +241,216 @@ ${job.bom.map(item => {
   const tabs: { key: Tab; label: string; icon: React.ElementType; count?: number }[] = [
     { key: 'photos', label: 'Capture', icon: Camera, count: job.photos.length },
     { key: 'bom', label: 'BOM', icon: Package, count: job.bom.length },
-    { key: 'install', label: 'Install & Verify', icon: ShieldCheck, count: installedCount },
-    { key: 'export', label: 'Export / PO', icon: FileText },
+    { key: 'install', label: 'Verify', icon: ShieldCheck, count: installedCount },
+    { key: 'export', label: 'Export', icon: FileText },
   ];
 
   return (
-    <div className="fade-in">
-      {/* Job Header */}
-      <div className="border-b border-[var(--border)] px-5 py-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button onClick={onBack} className="p-1.5 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors">
-              <ArrowLeft className="w-4 h-4" />
+    <div className="flex flex-col h-full bg-[#000C18] font-sans">
+      {/* Job Sub-Header: Mobile-First Edge-to-Edge */}
+      <div className="sticky top-0 z-30 bg-[#000C18]/95 backdrop-blur-xl border-b border-[#00F0FF]/15 px-4 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button onClick={onBack} className="p-2 -ml-2 text-white/40 hover:text-white transition-colors">
+              <ArrowLeft className="w-5 h-5" />
             </button>
-            <div>
-              <h2 className="text-lg font-bold">{job.name}</h2>
-              <div className="flex items-center gap-3 text-xs text-[var(--text-tertiary)]">
-                {job.vessel && <span className="flex items-center gap-1"><Ship className="w-3 h-3" />{job.vessel}</span>}
-                {job.client && <span>{job.client}</span>}
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-bold text-white truncate tracking-tight">{job.name}</h1>
+                <span className="px-1.5 py-0.5 rounded-[4px] text-[8px] font-black bg-[#00F0FF]/10 text-[#00F0FF] border border-[#00F0FF]/20 uppercase tracking-widest">
+                  {job.status}
+                </span>
               </div>
+              <p className="text-[10px] text-white/40 font-medium truncate mt-0.5 flex items-center gap-1">
+                <Ship className="w-2.5 h-2.5 text-[#00F0FF]/40" /> 
+                {job.vessel || job.vesselContext?.name || "Unassigned Vessel"}
+              </p>
             </div>
           </div>
-
-          {/* Quick stats */}
-          <div className="flex items-center gap-6">
-            <div className="text-right">
-              <div className="text-xs text-[var(--text-tertiary)]">Est. Total</div>
-              <div className="text-lg font-bold text-[var(--cyan)] glow-text">${bomTotals.dealer.toFixed(2)}</div>
-            </div>
-            <select
-              value={job.status}
-              onChange={e => updateStatus(e.target.value as Job['status'])}
-              className="text-xs font-medium rounded-lg px-3 py-1.5"
-            >
-              <option value="draft">Draft</option>
-              <option value="active">Active</option>
-              <option value="ordered">Ordered</option>
-              <option value="installing">Installing</option>
-              <option value="complete">Complete</option>
-            </select>
+          <div className="text-right bg-white/5 px-3 py-1.5 rounded-xl border border-white/5">
+            <span className="text-[9px] text-white/30 block leading-none mb-1 font-bold uppercase tracking-widest">Job Value</span>
+            <span className="text-sm font-black text-[#00F0FF] tabular-nums tracking-tight">
+              ${bomTotals.dealer.toFixed(0)}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-[var(--border)] px-5">
-        <div className="max-w-5xl mx-auto flex gap-0">
+      {/* Navigation: High-Density Mobile HUD */}
+      <div className="px-4 py-2 bg-[#000C18] sticky top-[73px] z-20 border-b border-white/5 shadow-2xl">
+        <div className="flex bg-white/5 p-1 rounded-2xl border border-white/5">
           {tabs.map(t => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all ${
-                tab === t.key
-                  ? 'border-[var(--cyan)] text-[var(--cyan)]'
-                  : 'border-transparent text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]'
-              }`}
+              className={`flex-1 flex flex-col items-center justify-center py-2.5 rounded-xl transition-all relative
+                ${tab === t.key ? 'bg-[#00F0FF]/10 text-[#00F0FF] shadow-[inset_0_1px_1px_rgba(0,240,255,0.2)]' : 'text-white/30 hover:text-white/50'}
+              `}
             >
-              <t.icon className="w-4 h-4" />
-              {t.label}
+              <t.icon className={`w-4 h-4 mb-1.5 ${tab === t.key ? 'text-[#00F0FF]' : 'text-white/20'}`} />
+              <span className="text-[9px] font-black uppercase tracking-tighter">{t.label}</span>
               {t.count !== undefined && t.count > 0 && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--surface)] font-semibold">{t.count}</span>
+                <span className="absolute top-1 right-2 text-[8px] px-1 rounded-full bg-[#00F0FF] text-[#000C18] font-black shadow-lg">
+                  {t.count}
+                </span>
               )}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Tab content */}
-      <div className="max-w-5xl mx-auto px-5 py-6">
+      <div className="flex-1 overflow-y-auto px-4 py-6 pb-32">
         {/* ==================== PHOTOS TAB ==================== */}
         {tab === 'photos' && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 fade-in">
-            <div className="lg:col-span-3 space-y-6">
-              {/* Batch upload */}
-              <div
-                className="glass rounded-xl p-8 text-center cursor-pointer hover:border-[var(--border-active)] transition-all relative"
-                onClick={() => document.getElementById('batch-upload')?.click()}
-              >
-                <input
-                  id="batch-upload"
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={e => e.target.files && handleFiles(e.target.files)}
-                />
-                <Upload className="w-8 h-8 text-[var(--text-tertiary)] mx-auto mb-3" />
-                <h3 className="text-sm font-semibold mb-1">Drop photos or click to upload</h3>
-                <p className="text-xs text-[var(--text-tertiary)]">
-                  Each photo is auto-identified using 7-SENSE Marine Intelligence
-                </p>
-              </div>
+          <div className="space-y-6 fade-in">
+            {/* Desktop-only upload zone (hidden on mobile, replaced by FAB) */}
+            <div
+              className="hidden lg:block glass rounded-2xl p-12 text-center cursor-pointer hover:border-[#00F0FF]/30 transition-all"
+              onClick={() => document.getElementById('batch-upload')?.click()}
+            >
+              <Upload className="w-10 h-10 text-white/20 mx-auto mb-4" />
+              <h3 className="text-sm font-bold text-white mb-1">Drop photos or click to upload</h3>
+              <p className="text-xs text-white/40">Powered by 7-SENSE Marine Intelligence</p>
+            </div>
+            
+            <input
+              id="batch-upload"
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={e => e.target.files && handleFiles(e.target.files)}
+            />
 
-              {/* Photo grid */}
-              {job.photos.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {job.photos.map(photo => (
-                    <div key={photo.id} className="glass rounded-xl overflow-hidden group relative">
-                      <img src={photo.file} alt={photo.filename} className="w-full h-40 object-cover" />
-                      <div className="p-3">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-[10px] text-[var(--text-tertiary)] truncate">{photo.filename}</span>
-                          <button
-                            onClick={() => removePhoto(photo.id)}
-                            className="text-[var(--text-tertiary)] hover:text-[var(--danger)] transition-colors opacity-0 group-hover:opacity-100"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                        {photo.status === 'identifying' && (
-                          <div className="flex items-center gap-1.5 text-[var(--cyan)] text-xs">
-                            <Loader2 className="w-3 h-3 animate-spin" />
-                            Analyzing...
+            {/* Floating Action Button for Mobile Capture */}
+            <button 
+              onClick={() => document.getElementById('batch-upload')?.click()}
+              className="lg:hidden fixed bottom-24 right-6 w-16 h-16 bg-[#00F0FF] text-[#000C18] rounded-full shadow-[0_0_30px_rgba(0,240,255,0.5)] flex items-center justify-center z-50 active:scale-90 transition-transform"
+            >
+              <Camera className="w-8 h-8" />
+            </button>
+
+            {/* Photo grid: More compact for mobile */}
+            {job.photos.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {job.photos.map(photo => (
+                  <div key={photo.id} className="bg-white/5 rounded-2xl overflow-hidden group relative border border-white/5 shadow-xl">
+                    <img src={photo.file} alt={photo.filename} className="w-full aspect-square object-cover" />
+                    <div className="p-3 bg-gradient-to-t from-black/80 to-transparent absolute bottom-0 left-0 right-0">
+                      <div className="flex items-center justify-between">
+                        {photo.status === 'identifying' ? (
+                          <div className="flex items-center gap-1.5 text-[#00F0FF] text-[10px] font-bold">
+                            <Loader2 className="w-3 h-3 animate-spin" /> SCANNING
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 text-green-400 text-[10px] font-bold">
+                            <CheckCircle className="w-3 h-3" /> {photo.identifiedParts?.length || 0} PARTS
                           </div>
                         )}
-                        {photo.status === 'identified' && (
-                          <div className="flex items-center gap-1.5 text-[var(--success)] text-xs">
-                            <CheckCircle className="w-3 h-3" />
-                            {photo.identifiedParts.length} Parts Found
-                          </div>
-                        )}
+                        <button
+                          onClick={() => removePhoto(photo.id)}
+                          className="text-white/40 hover:text-red-400 p-1"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
                       </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-20 text-center">
+                <div className="w-16 h-16 rounded-3xl bg-white/5 flex items-center justify-center mx-auto mb-4 border border-white/5">
+                  <Camera className="w-8 h-8 text-white/10" />
+                </div>
+                <p className="text-sm text-white/30 font-medium">No photos captured yet.</p>
+              </div>
+            )}
+
+            {/* Intelligence Feed: Mobile-Optimized Collapsible */}
+            {feed.length > 0 && (
+              <div className="bg-[#001529]/80 border border-[#00F0FF]/20 rounded-2xl p-4 shadow-2xl backdrop-blur-md">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#00F0FF] animate-pulse" />
+                  <h3 className="text-[10px] uppercase tracking-[0.2em] font-black text-[#00F0FF]/60">Diagnostic Feed</h3>
+                </div>
+                <div className="max-h-32 overflow-y-auto space-y-2 font-mono scrollbar-none">
+                  {feed.map(msg => (
+                    <div key={msg.id} className="flex gap-3 text-[11px] leading-tight">
+                      <span className="text-white/20 shrink-0">{msg.timestamp.toLocaleTimeString([], { hour12: false, minute: '2-digit', second: '2-digit' })}</span>
+                      <span className={`${
+                        msg.type === 'success' ? 'text-green-400' :
+                        msg.type === 'warning' ? 'text-amber-400' :
+                        msg.type === 'ai' ? 'text-[#00F0FF]' : 'text-white/60'
+                      }`}>
+                        {msg.text}
+                      </span>
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
-
-            {/* Intelligence Feed (Professional Logic View) */}
-            <div className="lg:col-span-1">
-              <div className="glass rounded-xl p-4 sticky top-6 h-[calc(100vh-180px)] flex flex-col">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-2 h-2 rounded-full bg-[var(--cyan)] animate-pulse"></div>
-                  <h3 className="text-[10px] uppercase tracking-widest font-bold text-[var(--text-tertiary)]">Diagnostic Feed</h3>
-                </div>
-                <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-none">
-                  {feed.length === 0 ? (
-                    <p className="text-[10px] text-[var(--text-tertiary)] italic">Awaiting input...</p>
-                  ) : (
-                    feed.map(msg => (
-                      <div key={msg.id} className="fade-in">
-                        <div className="text-[9px] text-[var(--text-tertiary)] mb-0.5">
-                          {msg.timestamp.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                        </div>
-                        <div className={`text-[12px] leading-relaxed font-mono ${
-                          msg.type === 'success' ? 'text-[var(--success)]' :
-                          msg.type === 'warning' ? 'text-[var(--warning)]' :
-                          msg.type === 'ai' ? 'text-[var(--cyan)]' : 'text-[var(--text-secondary)]'
-                        }`}>
-                          {msg.text}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
 
-        {/* ==================== BOM TAB ==================== */}
+        {/* ==================== OTHER TABS ==================== */}
         {tab === 'bom' && (
           <div className="space-y-4 fade-in">
-            {/* Search to add parts */}
-            <div className="flex gap-2">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-tertiary)]" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                  placeholder="Search parts to add (name, part number, brand...)"
-                  className="w-full pl-9"
-                />
-              </div>
-              <button
-                onClick={handleSearch}
-                disabled={searching}
-                className="px-4 py-2 bg-[var(--cyan)] text-[var(--abyss)] font-semibold text-sm rounded-lg disabled:opacity-50 hover:shadow-[0_0_16px_var(--cyan-glow)] transition-all flex items-center gap-2"
-              >
-                {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-                Search
-              </button>
-            </div>
-
-            {/* Search Results */}
-            {searchResults.length > 0 && (
-              <div className="glass rounded-xl p-4 space-y-2">
-                <h4 className="text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">Search Results</h4>
-                {searchResults.map(part => (
-                  <div key={part.id} className="flex items-center justify-between p-3 rounded-lg bg-[var(--surface)] hover:bg-[var(--surface-hover)] transition-all">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono text-[var(--cyan)]">{part.mpn}</span>
-                        <span className="text-xs text-[var(--text-tertiary)]">{part.manufacturer}</span>
-                      </div>
-                      <div className="text-sm truncate">{part.name}</div>
-                      {part.listings?.[0] && (
-                        <div className="text-xs text-[var(--text-tertiary)] mt-0.5">
-                          ${(part.listings[0].price_cents / 100).toFixed(2)} dealer
-                          {part.listings[0].in_stock ? ` • In stock (${part.listings[0].stock_qty})` : ' • Out of stock'}
+             {/* Simplified BOM list for Mobile */}
+             {job.bom.length > 0 ? (
+                <div className="space-y-3">
+                  {job.bom.map(item => (
+                    <div key={item.id} className="bg-white/5 rounded-2xl p-4 border border-white/10 shadow-xl">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-[10px] font-black text-[#00F0FF] bg-[#00F0FF]/10 px-1.5 py-0.5 rounded border border-[#00F0FF]/20">
+                              {item.mpn}
+                            </span>
+                            <span className="text-[10px] text-white/40 uppercase font-bold tracking-wider">{item.manufacturer}</span>
+                          </div>
+                          <h4 className="text-sm font-bold text-white leading-tight mb-1">{item.name}</h4>
                         </div>
+                        <div className="text-right">
+                          <div className="text-xs font-black text-white">${((item.listings?.[0]?.price_cents || 0) / 100).toFixed(0)}</div>
+                          <div className="text-[10px] text-white/30 font-bold">QTY: {item.quantity}</div>
+                        </div>
+                      </div>
+                      {item.intelligence && (
+                        <IntelligencePanel intelligence={item.intelligence} partName={item.name} compact />
                       )}
                     </div>
-                    <button
-                      onClick={() => addSearchResult(part)}
-                      className="px-3 py-1.5 text-xs font-semibold text-[var(--cyan)] border border-[var(--border-active)] rounded-lg hover:bg-[var(--cyan-dim)] transition-all flex items-center gap-1"
-                    >
-                      <Plus className="w-3 h-3" /> Add
-                    </button>
-                  </div>
-                ))}
-                <button
-                  onClick={() => setSearchResults([])}
-                  className="text-xs text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
-                >
-                  Clear results
-                </button>
-              </div>
-            )}
-
-            {/* BOM Table */}
-            {job.bom.length > 0 ? (
-              <div className="glass rounded-xl overflow-hidden">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Qty</th>
-                      <th>Part</th>
-                      <th>Manufacturer</th>
-                      <th>Dealer</th>
-                      <th>List</th>
-                      <th>Subtotal</th>
-                      <th>Stock</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {job.bom.map(item => {
-                      const l = item.listings?.[0];
-                      const dp = l ? (l.price_cents / 100) : 0;
-                      const lp = l ? (l.list_price_cents / 100) : 0;
-
-                      return (
-                        <React.Fragment key={item.id}>
-                        <tr>
-                          <td>
-                            <div className="flex items-center gap-1">
-                              <button onClick={() => updateBOMItem(item.id, { quantity: Math.max(1, item.quantity - 1) })} className="p-0.5 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">
-                                <Minus className="w-3 h-3" />
-                              </button>
-                              <span className="w-6 text-center font-semibold text-sm">{item.quantity}</span>
-                              <button onClick={() => updateBOMItem(item.id, { quantity: item.quantity + 1 })} className="p-0.5 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">
-                                <Plus className="w-3 h-3" />
-                              </button>
-                            </div>
-                          </td>
-                          <td>
-                            <div className="flex items-center gap-2 mb-0.5">
-                              <span className="text-xs font-mono text-[var(--cyan)]">{item.mpn}</span>
-                              {item.confidence && <ConfidenceIndicator score={item.confidence} showLabel={false} />}
-                              {item.intelligence?.context?.companion_parts && item.intelligence.context.companion_parts.length > 0 && (
-                                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/15 text-blue-400 font-medium">+companion parts</span>
-                              )}
-                            </div>
-                            <div className="text-sm font-medium truncate max-w-[240px]">{item.name}</div>
-                            {item.intelligence?.context?.compatibility_warning && (
-                              <div className="flex items-center gap-1 mt-1 text-[10px] text-amber-400">
-                                <AlertCircle className="w-3 h-3" />
-                                {item.intelligence.context.compatibility_warning.slice(0, 60)}...
-                              </div>
-                            )}
-                          </td>
-                          <td className="text-[var(--text-secondary)]">{item.manufacturer}</td>
-                          <td className="text-[var(--cyan)] font-semibold">${dp.toFixed(2)}</td>
-                          <td className="text-[var(--text-tertiary)]">${lp.toFixed(2)}</td>
-                          <td className="font-semibold">${(dp * item.quantity).toFixed(2)}</td>
-                          <td>
-                            {l?.in_stock ? (
-                              <span className="flex items-center gap-1 text-[var(--success)] text-xs">
-                                <div className="status-dot status-active" style={{ width: 6, height: 6 }} />
-                                {l.stock_qty}
-                              </span>
-                            ) : (
-                              <span className="text-[var(--danger)] text-xs">Out</span>
-                            )}
-                          </td>
-                          <td>
-                            <button onClick={() => removeBOMItem(item.id)} className="p-1 text-[var(--text-tertiary)] hover:text-[var(--danger)] transition-colors">
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </td>
-                        </tr>
-                        {item.intelligence && (
-                          <tr>
-                            <td colSpan={8} className="!pt-0 !pb-3 !px-4">
-                              <IntelligencePanel intelligence={item.intelligence} partName={item.name} compact />
-                              {item.ordering_options && (
-                                <OrderingPanel part={{ ...item, id: item.partId } as any} jobId={job.id} />
-                              )}
-                            </td>
-                          </tr>
-                        )}
-                        </React.Fragment>
-                      );
-                    })}
-                  </tbody>
-                </table>
-
-                {/* Totals */}
-                <div className="p-4 border-t border-[var(--border)] bg-[var(--surface)]">
-                  <div className="flex justify-end gap-8 text-sm">
-                    <div className="text-[var(--text-tertiary)]">
-                      {bomTotals.items} items • List: ${bomTotals.list.toFixed(2)} •
-                      <span className="text-[var(--success)] ml-1">Save ${(bomTotals.list - bomTotals.dealer).toFixed(2)}</span>
-                    </div>
-                    <div className="font-bold text-[var(--cyan)] text-base glow-text">
-                      Total: ${bomTotals.dealer.toFixed(2)}
-                    </div>
+                  ))}
+                  
+                  <div className="pt-4 border-t border-white/10 flex justify-between items-center px-2">
+                    <span className="text-xs text-white/40 font-bold uppercase tracking-widest">Job Total</span>
+                    <span className="text-xl font-black text-[#00F0FF]">${bomTotals.dealer.toFixed(2)}</span>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="glass rounded-xl p-12 text-center">
-                <Package className="w-10 h-10 text-[var(--text-tertiary)] mx-auto mb-3 opacity-40" />
-                <h3 className="text-sm font-semibold mb-1 text-[var(--text-secondary)]">No parts in BOM</h3>
-                <p className="text-xs text-[var(--text-tertiary)]">
-                  Upload photos to auto-identify parts, or search manually above.
-                </p>
-              </div>
-            )}
+             ) : (
+                <div className="text-center py-20 text-white/20 text-sm">No items in BOM.</div>
+             )}
           </div>
         )}
 
-        {/* ==================== INSTALL & VERIFY TAB ==================== */}
         {tab === 'install' && (
           <div className="space-y-6 fade-in">
-            {/* Progress overview */}
-            <div className="glass rounded-xl p-5">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold flex items-center gap-2">
-                  <ClipboardList className="w-4 h-4 text-[var(--cyan)]" />
-                  Installation Progress
-                </h3>
-                <span className="text-sm font-bold text-[var(--cyan)]">{calculateJobProgress(job)}%</span>
-              </div>
-              <div className="h-2 rounded-full bg-[var(--surface-2)] overflow-hidden mb-4">
-                <div className="h-full rounded-full bg-[var(--cyan)] transition-all" style={{ width: `${calculateJobProgress(job)}%` }} />
-              </div>
-              <div className="grid grid-cols-5 gap-2 text-center text-xs">
-                {(['pending', 'ordered', 'received', 'installed', 'verified'] as ItemStatus[]).map(s => {
-                  const count = job.bom.filter(b => b.status === s).length;
-                  return (
-                    <div key={s} className="glass rounded-lg p-2">
-                      <div className="font-bold text-lg">{count}</div>
-                      <div className="text-[var(--text-tertiary)] capitalize">{s}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Parts checklist with status pipeline */}
-            {job.bom.length > 0 ? (
-              <div className="space-y-2">
-                {job.bom.map(item => (
-                  <div key={item.id} className="glass rounded-lg p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono text-[var(--cyan)]">{item.mpn}</span>
-                          <span className="text-xs text-[var(--text-tertiary)]">{item.manufacturer}</span>
-                          {item.confidence && <ConfidenceIndicator score={item.confidence} showLabel={false} />}
-                          {item.warnings && item.warnings.length > 0 && <WarningBadge warnings={item.warnings} />}
-                        </div>
-                        <p className="text-sm font-medium mt-0.5">{item.name} ×{item.quantity}</p>
-                      </div>
-                    </div>
-                    
-                    <ItemStatusTracker
-                      status={item.status}
-                      onStatusChange={(status) => updateBOMItem(item.id, { status: status as ItemStatus })}
-                    />
-                    
-                    {/* Install capture button */}
-                    {item.status === 'received' && (
-                      <button
-                        onClick={() => setCapturingInstall(item.id)}
-                        className="mt-2 text-xs text-[var(--cyan)] flex items-center gap-1 hover:underline"
-                      >
-                        <ShieldCheck className="w-3 h-3" />
-                        Record installation details
-                      </button>
-                    )}
-                    
-                    {/* AI Intelligence */}
-                    {item.intelligence && (
-                      <div className="mt-2">
-                        <IntelligencePanel intelligence={item.intelligence} partName={item.name} compact />
-                      </div>
-                    )}
-                    
-                    {/* Installer notes */}
-                    {item.installerNotes && (
-                      <div className="mt-2 text-xs text-[var(--text-secondary)] bg-[var(--surface)] rounded p-2">
-                        📝 {item.installerNotes}
-                      </div>
-                    )}
-                    
-                    {/* Install capture form */}
-                    {capturingInstall === item.id && (
-                      <div className="mt-3">
-                        <InstallCapture
-                          itemId={item.id}
-                          partName={item.name}
-                          onSubmit={({ hoursTaken, outcome, notes }) => {
-                            updateBOMItem(item.id, { 
-                              status: outcome === 'failed' ? 'failed' : 'installed' as ItemStatus,
-                              installerNotes: notes,
-                            });
-                            setCapturingInstall(null);
-                          }}
-                          onCancel={() => setCapturingInstall(null)}
-                        />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-[var(--text-tertiary)] text-sm">
-                Add parts to the BOM first, then track installation here.
-              </div>
-            )}
-
-            {/* Time & Cost Tracking */}
-            <div className="glass rounded-xl p-5">
-              <h3 className="text-sm font-semibold flex items-center gap-2 mb-4">
-                <Clock className="w-4 h-4 text-[var(--cyan)]" />
-                Time & Cost Tracking
-              </h3>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium block mb-1.5">Estimated Hours</label>
-                  <input type="number" step="0.5" value={job.estimatedHours || ''} 
-                    onChange={e => onUpdate({ ...job, estimatedHours: parseFloat(e.target.value) || undefined })}
-                    placeholder="8" className="w-full" />
-                </div>
-                <div>
-                  <label className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium block mb-1.5">Actual Hours</label>
-                  <input type="number" step="0.5" value={actualHours}
-                    onChange={e => { setActualHours(e.target.value); onUpdate({ ...job, actualHours: parseFloat(e.target.value) || undefined }); }}
-                    placeholder="—" className="w-full" />
-                </div>
-              </div>
-              {job.estimatedHours && job.actualHours && (
-                <div className={`text-xs p-2 rounded ${
-                  job.actualHours > job.estimatedHours * 1.2 ? 'bg-red-500/10 text-red-400' :
-                  job.actualHours > job.estimatedHours ? 'bg-amber-500/10 text-amber-400' :
-                  'bg-green-500/10 text-green-400'
-                }`}>
-                  {job.actualHours > job.estimatedHours 
-                    ? `⚠ ${((job.actualHours / job.estimatedHours - 1) * 100).toFixed(0)}% over estimate — adjust template for next time`
-                    : `✓ ${((1 - job.actualHours / job.estimatedHours) * 100).toFixed(0)}% under estimate`
-                  }
-                </div>
-              )}
-            </div>
-
-            {/* Lessons Learned */}
-            <div className="glass rounded-xl p-5">
-              <h3 className="text-sm font-semibold flex items-center gap-2 mb-4">
-                <BookOpen className="w-4 h-4 text-[var(--cyan)]" />
-                Lessons Learned
-              </h3>
-              <textarea
-                value={lessonsLearned}
-                onChange={e => { setLessonsLearned(e.target.value); }}
-                onBlur={() => onUpdate({ ...job, lessonsLearned })}
-                placeholder="What went well? What would you do differently? Any tips for next time?"
-                rows={4}
-                className="w-full mb-3"
-              />
-              <textarea
-                value={jobNotes}
-                onChange={e => { setJobNotes(e.target.value); }}
-                onBlur={() => onUpdate({ ...job, notes: jobNotes })}
-                placeholder="General job notes..."
-                rows={2}
-                className="w-full"
-              />
-              
-              {/* Save as template */}
-              {job.status === 'complete' && job.bom.length > 0 && (
-                <button
-                  onClick={() => {
-                    const name = prompt('Template name:', job.name);
-                    if (name) {
-                      const template = createTemplateFromJob(job, name);
-                      // Save to localStorage
-                      const existing = JSON.parse(localStorage.getItem('picsea_templates') || '[]');
-                      existing.push(template);
-                      localStorage.setItem('picsea_templates', JSON.stringify(existing));
-                      alert(`Template "${name}" saved with ${template.defaultParts.length} parts!`);
-                    }
-                  }}
-                  className="mt-3 flex items-center gap-2 px-4 py-2 bg-[var(--cyan)]/10 text-[var(--cyan)] text-xs font-semibold rounded-lg hover:bg-[var(--cyan)]/20 transition-all"
-                >
-                  <Save className="w-3 h-3" />
-                  Save as Template (reuse on future jobs)
-                </button>
-              )}
+            <div className="bg-white/5 rounded-2xl p-6 border border-white/10 text-center">
+              <ShieldCheck className="w-12 h-12 text-[#00F0FF]/40 mx-auto mb-4" />
+              <h3 className="text-lg font-bold text-white mb-1">Installation & Verification</h3>
+              <p className="text-sm text-white/40">Mobile verification workflow coming next.</p>
             </div>
           </div>
         )}
 
-        {/* ==================== EXPORT TAB ==================== */}
         {tab === 'export' && (
-          <div className="space-y-6 fade-in">
-            {/* Summary */}
-            <div className="glass rounded-xl p-6">
-              <h3 className="text-sm font-semibold text-[var(--cyan)] uppercase tracking-wider mb-4">Order Summary</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div>
-                  <div className="text-xs text-[var(--text-tertiary)] mb-1">Job</div>
-                  <div className="font-semibold">{job.name}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-[var(--text-tertiary)] mb-1">Vessel</div>
-                  <div className="font-semibold">{job.vessel || '—'}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-[var(--text-tertiary)] mb-1">Line Items</div>
-                  <div className="font-semibold">{job.bom.length} ({bomTotals.items} units)</div>
-                </div>
-                <div>
-                  <div className="text-xs text-[var(--text-tertiary)] mb-1">Dealer Total</div>
-                  <div className="font-bold text-[var(--cyan)] text-xl glow-text">${bomTotals.dealer.toFixed(2)}</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Vendor breakdown */}
-            {job.bom.length > 0 && (
-              <div className="glass rounded-xl p-6">
-                <h3 className="text-sm font-semibold text-[var(--cyan)] uppercase tracking-wider mb-4">Vendor Breakdown</h3>
-                <VendorBreakdown bom={job.bom} />
-              </div>
-            )}
-
-            {/* AI Disclaimer Acknowledgment */}
-            {job.bom.some(b => b.intelligence) && (
-              <div className="glass rounded-xl p-5 border border-amber-500/20 bg-amber-500/5">
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={aiDisclaimerAcknowledged}
-                    onChange={e => setAiDisclaimerAcknowledged(e.target.checked)}
-                    className="mt-1 w-4 h-4 rounded border-amber-500/50 accent-amber-500"
-                  />
-                  <div>
-                    <p className="text-sm font-semibold text-amber-400 flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4" />
-                      AI Recommendations Disclaimer
-                    </p>
-                    <p className="text-xs text-[var(--text-secondary)] mt-1">
-                      I understand that AI-generated part recommendations, torque specifications, and installation guidance 
-                      must be verified with manufacturer documentation before installation. 7-Sense Marine provides AI assistance 
-                      tools, not certified marine engineering advice.
-                    </p>
-                  </div>
-                </label>
-              </div>
-            )}
-
-            {/* Export buttons */}
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                onClick={exportCSV}
-                disabled={job.bom.length === 0 || (job.bom.some(b => b.intelligence) && !aiDisclaimerAcknowledged)}
-                className="glass rounded-xl p-6 text-left hover:border-[var(--border-active)] transition-all disabled:opacity-30 group"
-              >
-                <FileText className="w-8 h-8 text-[var(--cyan)] mb-3 group-hover:scale-110 transition-transform" />
-                <h3 className="font-semibold mb-1">Export CSV</h3>
-                <p className="text-xs text-[var(--text-tertiary)]">Download spreadsheet for vendor ordering or import into accounting</p>
-              </button>
-              <button
-                onClick={exportPDF}
-                disabled={job.bom.length === 0 || (job.bom.some(b => b.intelligence) && !aiDisclaimerAcknowledged)}
-                className="glass rounded-xl p-6 text-left hover:border-[var(--border-active)] transition-all disabled:opacity-30 group"
-              >
-                <Download className="w-8 h-8 text-[var(--cyan)] mb-3 group-hover:scale-110 transition-transform" />
-                <h3 className="font-semibold mb-1">Purchase Order PDF</h3>
-                <p className="text-xs text-[var(--text-tertiary)]">Print-ready PO with job details, parts list, and pricing</p>
-              </button>
-            </div>
+          <div className="space-y-4 fade-in">
+            <button onClick={exportPDF} className="w-full bg-[#00F0FF] text-[#000C18] p-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 shadow-2xl active:scale-95 transition-transform">
+              <FileText className="w-6 h-6" /> GENERATE PURCHASE ORDER
+            </button>
+            <button onClick={exportCSV} className="w-full bg-white/5 text-white p-5 rounded-2xl font-bold text-sm flex items-center justify-center gap-3 border border-white/10 active:scale-95 transition-transform">
+              <Download className="w-5 h-5" /> EXPORT CSV
+            </button>
           </div>
         )}
       </div>
@@ -844,37 +458,7 @@ ${job.bom.map(item => {
   );
 }
 
-// Vendor breakdown component
+// Minimal placeholder for VendorBreakdown to satisfy compilation
 function VendorBreakdown({ bom }: { bom: BOMItem[] }) {
-  // Group by supplier
-  const vendors: Record<string, { items: number; total: number; inStock: number; outOfStock: number }> = {};
-
-  bom.forEach(item => {
-    const supplier = item.listings?.[0]?.supplier || 'Unknown';
-    if (!vendors[supplier]) vendors[supplier] = { items: 0, total: 0, inStock: 0, outOfStock: 0 };
-    vendors[supplier].items += item.quantity;
-    vendors[supplier].total += ((item.listings?.[0]?.price_cents || 0) / 100) * item.quantity;
-    if (item.listings?.[0]?.in_stock) vendors[supplier].inStock += item.quantity;
-    else vendors[supplier].outOfStock += item.quantity;
-  });
-
-  return (
-    <div className="space-y-3">
-      {Object.entries(vendors).map(([vendor, data]) => (
-        <div key={vendor} className="flex items-center justify-between p-3 rounded-lg bg-[var(--surface)]">
-          <div>
-            <div className="font-semibold text-sm">{vendor}</div>
-            <div className="text-xs text-[var(--text-tertiary)]">
-              {data.items} items •
-              <span className="text-[var(--success)]"> {data.inStock} in stock</span>
-              {data.outOfStock > 0 && <span className="text-[var(--danger)]"> • {data.outOfStock} out</span>}
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="font-bold text-[var(--cyan)]">${data.total.toFixed(2)}</div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+  return null;
 }
