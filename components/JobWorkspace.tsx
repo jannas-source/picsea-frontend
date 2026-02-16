@@ -21,8 +21,16 @@ interface JobWorkspaceProps {
 
 type Tab = 'photos' | 'bom' | 'install' | 'export';
 
+interface FeedMessage {
+  id: string;
+  text: string;
+  type: 'info' | 'success' | 'warning' | 'ai';
+  timestamp: Date;
+}
+
 export function JobWorkspace({ job, onUpdate, onBack }: JobWorkspaceProps) {
   const [tab, setTab] = useState<Tab>('photos');
+  const [feed, setFeed] = useState<FeedMessage[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<IdentifiedPart[]>([]);
   const [searching, setSearching] = useState(false);
