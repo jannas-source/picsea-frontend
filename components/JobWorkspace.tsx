@@ -36,6 +36,12 @@ export function JobWorkspace({ job, onUpdate, onBack }: JobWorkspaceProps) {
   // --- Photo handling ---
   const handleFiles = useCallback(async (files: FileList) => {
     const newPhotos: JobPhoto[] = [];
+    const pushFeed = (text: string, type: FeedMessage['type'] = 'info') => {
+      setFeed(prev => [{ id: Math.random().toString(), text, type, timestamp: new Date() }, ...prev].slice(0, 50));
+    };
+
+    pushFeed(`Initializing scan for ${files.length} uploads...`, 'info');
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (!file.type.startsWith('image/')) continue;
@@ -46,12 +52,13 @@ export function JobWorkspace({ job, onUpdate, onBack }: JobWorkspaceProps) {
       });
       newPhotos.push(createPhoto(dataUrl, file.name));
     }
+    
     const updated = { ...job, photos: [...job.photos, ...newPhotos] };
     onUpdate(updated);
 
-    // Auto-identify each photo
     for (const photo of newPhotos) {
       try {
+        pushFeed(`Analyzing ${photo.filename}...`, 'ai');
         const updatedPhoto = { ...photo, status: 'identifying' as const };
         onUpdate({
           ...updated,
@@ -60,6 +67,11 @@ export function JobWorkspace({ job, onUpdate, onBack }: JobWorkspaceProps) {
 
         const vesselCtx = (job as any).vesselContext ? vesselContextToAPI((job as any).vesselContext) : undefined;
         const result = await identifyPhoto(photo.file, vesselCtx);
+        
+        if (result.parts?.length > 0) {
+          pushFeed(`Success: Detected ${result.parts[0].name} (${result.parts[0].manufacturer})`, 'success');
+        }
+
         const identified: JobPhoto = {
           ...photo,
           status: 'identified',
@@ -67,12 +79,12 @@ export function JobWorkspace({ job, onUpdate, onBack }: JobWorkspaceProps) {
           notes: result.notes || '',
         };
 
-        // Auto-add to BOM
         const newBomItems = result.parts.map(p => partToBOMItem(p, photo.id));
         updated.photos = updated.photos.map(p => p.id === photo.id ? identified : p);
         updated.bom = [...updated.bom, ...newBomItems];
         onUpdate({ ...updated });
-      } catch {
+      } catch (err) {
+        pushFeed(`Error identifying ${photo.filename}: Check connection`, 'warning');
         updated.photos = updated.photos.map(p =>
           p.id === photo.id ? { ...p, status: 'failed' as const } : p
         );
@@ -291,75 +303,92 @@ ${job.bom.map(item => {
       <div className="max-w-5xl mx-auto px-5 py-6">
         {/* ==================== PHOTOS TAB ==================== */}
         {tab === 'photos' && (
-          <div className="space-y-6 fade-in">
-            {/* Batch upload */}
-            <div
-              className="glass rounded-xl p-8 text-center cursor-pointer hover:border-[var(--border-active)] transition-all relative"
-              onClick={() => document.getElementById('batch-upload')?.click()}
-            >
-              <input
-                id="batch-upload"
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={e => e.target.files && handleFiles(e.target.files)}
-              />
-              <Upload className="w-8 h-8 text-[var(--text-tertiary)] mx-auto mb-3" />
-              <h3 className="text-sm font-semibold mb-1">Drop photos or click to upload</h3>
-              <p className="text-xs text-[var(--text-tertiary)]">
-                Upload multiple photos — each will be auto-identified and added to BOM
-              </p>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 fade-in">
+            <div className="lg:col-span-3 space-y-6">
+              {/* Batch upload */}
+              <div
+                className="glass rounded-xl p-8 text-center cursor-pointer hover:border-[var(--border-active)] transition-all relative"
+                onClick={() => document.getElementById('batch-upload')?.click()}
+              >
+                <input
+                  id="batch-upload"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={e => e.target.files && handleFiles(e.target.files)}
+                />
+                <Upload className="w-8 h-8 text-[var(--text-tertiary)] mx-auto mb-3" />
+                <h3 className="text-sm font-semibold mb-1">Drop photos or click to upload</h3>
+                <p className="text-xs text-[var(--text-tertiary)]">
+                  Each photo is auto-identified using 7-SENSE Marine Intelligence
+                </p>
+              </div>
+
+              {/* Photo grid */}
+              {job.photos.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {job.photos.map(photo => (
+                    <div key={photo.id} className="glass rounded-xl overflow-hidden group relative">
+                      <img src={photo.file} alt={photo.filename} className="w-full h-40 object-cover" />
+                      <div className="p-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] text-[var(--text-tertiary)] truncate">{photo.filename}</span>
+                          <button
+                            onClick={() => removePhoto(photo.id)}
+                            className="text-[var(--text-tertiary)] hover:text-[var(--danger)] transition-colors opacity-0 group-hover:opacity-100"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                        {photo.status === 'identifying' && (
+                          <div className="flex items-center gap-1.5 text-[var(--cyan)] text-xs">
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            Analyzing...
+                          </div>
+                        )}
+                        {photo.status === 'identified' && (
+                          <div className="flex items-center gap-1.5 text-[var(--success)] text-xs">
+                            <CheckCircle className="w-3 h-3" />
+                            {photo.identifiedParts.length} Parts Found
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Photo grid */}
-            {job.photos.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {job.photos.map(photo => (
-                  <div key={photo.id} className="glass rounded-xl overflow-hidden group relative">
-                    <img src={photo.file} alt={photo.filename} className="w-full h-40 object-cover" />
-                    <div className="p-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[10px] text-[var(--text-tertiary)] truncate">{photo.filename}</span>
-                        <button
-                          onClick={() => removePhoto(photo.id)}
-                          className="text-[var(--text-tertiary)] hover:text-[var(--danger)] transition-colors opacity-0 group-hover:opacity-100"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
+            {/* Intelligence Feed (Professional Logic View) */}
+            <div className="lg:col-span-1">
+              <div className="glass rounded-xl p-4 sticky top-6 h-[calc(100vh-180px)] flex flex-col">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-2 h-2 rounded-full bg-[var(--cyan)] animate-pulse"></div>
+                  <h3 className="text-[10px] uppercase tracking-widest font-bold text-[var(--text-tertiary)]">Diagnostic Feed</h3>
+                </div>
+                <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-none">
+                  {feed.length === 0 ? (
+                    <p className="text-[10px] text-[var(--text-tertiary)] italic">Awaiting input...</p>
+                  ) : (
+                    feed.map(msg => (
+                      <div key={msg.id} className="fade-in">
+                        <div className="text-[9px] text-[var(--text-tertiary)] mb-0.5">
+                          {msg.timestamp.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        </div>
+                        <div className={`text-[12px] leading-relaxed font-mono ${
+                          msg.type === 'success' ? 'text-[var(--success)]' :
+                          msg.type === 'warning' ? 'text-[var(--warning)]' :
+                          msg.type === 'ai' ? 'text-[var(--cyan)]' : 'text-[var(--text-secondary)]'
+                        }`}>
+                          {msg.text}
+                        </div>
                       </div>
-                      {photo.status === 'identifying' && (
-                        <div className="flex items-center gap-1.5 text-[var(--cyan)] text-xs">
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                          Identifying...
-                        </div>
-                      )}
-                      {photo.status === 'identified' && (
-                        <div className="flex items-center gap-1.5 text-[var(--success)] text-xs">
-                          <CheckCircle className="w-3 h-3" />
-                          {photo.identifiedParts.length} part{photo.identifiedParts.length !== 1 ? 's' : ''}
-                        </div>
-                      )}
-                      {photo.status === 'failed' && (
-                        <div className="flex items-center gap-1.5 text-[var(--danger)] text-xs">
-                          <AlertCircle className="w-3 h-3" />
-                          Failed
-                        </div>
-                      )}
-                      {photo.status === 'pending' && (
-                        <div className="text-xs text-[var(--text-tertiary)]">Pending</div>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                    ))
+                  )}
+                </div>
               </div>
-            )}
-
-            {job.photos.length === 0 && (
-              <div className="text-center py-12 text-[var(--text-tertiary)] text-sm">
-                No photos yet. Upload photos of parts to auto-identify them.
-              </div>
-            )}
+            </div>
           </div>
         )}
 
