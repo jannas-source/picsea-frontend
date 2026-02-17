@@ -39,9 +39,9 @@ export function CaptureView({ jobs, onPhotoCapture, onOpenJob, onTryDemo }: Capt
     .slice(0, 8);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col" style={{ minHeight: 'calc(100dvh - 56px - 72px - env(safe-area-inset-bottom, 0px))' }}>
       {/* Viewfinder area */}
-      <div className="flex-1 relative overflow-hidden">
+      <div className="flex-1 relative overflow-hidden" style={{ minHeight: '60dvh' }}>
         {/* Dark viewfinder background */}
         <div
           className="absolute inset-0"

@@ -1,9 +1,7 @@
 /* 7-SENSE Centralized Design Tokens (Refined Kit 2026) */
+@import "tailwindcss";
+@config "../tailwind.config.ts";
 @import "./7sense-tokens.css";
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 /* ==================== BASE RESET ==================== */
 
