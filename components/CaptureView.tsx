@@ -16,7 +16,8 @@ interface CaptureViewProps {
 }
 
 export function CaptureView({ jobs, onPhotoCapture, onOpenJob, onTryDemo }: CaptureViewProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const libraryInputRef = useRef<HTMLInputElement>(null);
   const [recording, setRecording] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,6 +32,9 @@ export function CaptureView({ jobs, onPhotoCapture, onOpenJob, onTryDemo }: Capt
     reader.readAsDataURL(file);
     e.target.value = '';
   };
+
+  const openCamera = () => cameraInputRef.current?.click();
+  const openLibrary = () => libraryInputRef.current?.click();
 
   const recentJobs = jobs
     .filter((j) => j.status === 'active')
@@ -179,9 +183,9 @@ export function CaptureView({ jobs, onPhotoCapture, onOpenJob, onTryDemo }: Capt
             <Mic className="w-5 h-5" />
           </button>
 
-          {/* Shutter button — hero element */}
+          {/* Shutter button — hero element (CAMERA) */}
           <button
-            onClick={() => fileInputRef.current?.click()}
+            onClick={openCamera}
             className="relative transition-transform active:scale-90"
             style={{ minHeight: '76px', minWidth: '76px' }}
           >
@@ -217,9 +221,9 @@ export function CaptureView({ jobs, onPhotoCapture, onOpenJob, onTryDemo }: Capt
             </div>
           </button>
 
-          {/* Gallery */}
+          {/* Gallery / Photo Library */}
           <button
-            onClick={() => fileInputRef.current?.click()}
+            onClick={openLibrary}
             className="w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-95"
             style={{
               background: 'linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))',
@@ -234,12 +238,19 @@ export function CaptureView({ jobs, onPhotoCapture, onOpenJob, onTryDemo }: Capt
           </button>
         </div>
 
-        {/* Hidden file input */}
+        {/* Hidden file inputs — camera vs library */}
         <input
-          ref={fileInputRef}
+          ref={cameraInputRef}
           type="file"
           accept="image/*"
           capture="environment"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+        <input
+          ref={libraryInputRef}
+          type="file"
+          accept="image/*"
           onChange={handleFileChange}
           className="hidden"
         />
