@@ -164,7 +164,7 @@ export function AccountButton({ onSignIn }: AccountButtonProps) {
                     }}
                   >
                     <Zap className="w-3 h-3" />
-                    {upgradeError || (upgrading ? 'Loading...' : 'Upgrade to Pro — $49/mo')}
+                    {upgradeError || (upgrading ? 'Loading...' : 'Upgrade to Pro — $9/mo')}
                   </button>
                 </div>
               )}
