@@ -58,7 +58,7 @@ export function PartDetail({ item, vesselVoltage, onClose, onConfirm }: PartDeta
             onClick={(e) => e.stopPropagation()}
             className="absolute bottom-0 left-0 right-0 rounded-t-3xl overflow-hidden"
             style={{
-              maxHeight: '85vh',
+              maxHeight: '92dvh',
               background: 'linear-gradient(180deg, #001a2e 0%, #000c18 100%)',
               border: '1px solid rgba(0, 240, 255, 0.1)',
               borderBottom: 'none',
@@ -122,8 +122,8 @@ export function PartDetail({ item, vesselVoltage, onClose, onConfirm }: PartDeta
 
             {/* Scrollable content */}
             <div
-              className="overflow-y-auto px-5 pb-32"
-              style={{ maxHeight: 'calc(85vh - 140px)' }}
+              className="overflow-y-auto px-5 pb-28"
+              style={{ maxHeight: 'calc(92dvh - 120px)', WebkitOverflowScrolling: 'touch' }}
             >
               {/* Warnings */}
               {item.warnings && item.warnings.length > 0 && (
