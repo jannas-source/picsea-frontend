@@ -3,9 +3,10 @@
 import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Job } from '@/lib/types';
+import { useAuth } from '@/lib/auth';
 import {
-  Camera, Mic, ImagePlus, Scan, ChevronRight,
-  Zap, Anchor,
+  Camera, ImagePlus, Scan, ChevronRight,
+  Zap, Anchor, Lock,
 } from 'lucide-react';
 
 interface CaptureViewProps {
@@ -18,7 +19,7 @@ interface CaptureViewProps {
 export function CaptureView({ jobs, onPhotoCapture, onOpenJob, onTryDemo }: CaptureViewProps) {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const libraryInputRef = useRef<HTMLInputElement>(null);
-  const [recording, setRecording] = useState(false);
+  const { user, scansRemaining, scanLimit, canScan } = useAuth();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -138,49 +139,68 @@ export function CaptureView({ jobs, onPhotoCapture, onOpenJob, onTryDemo }: Capt
               className="text-2xl font-black text-white mb-2"
               style={{ fontFamily: 'var(--font-montserrat)', letterSpacing: '-0.01em' }}
             >
-              Point at a part or system
+              {!canScan && user ? 'Scan limit reached' : 'Point at a part or system'}
             </h2>
             <p className="text-sm mb-8" style={{ color: 'rgba(255,255,255,0.45)', lineHeight: '1.5' }}>
-              Take a photo to identify parts and build your order
+              {!canScan && user
+                ? 'Upgrade to Pro for unlimited part identification'
+                : user && scanLimit > 0
+                  ? `${scansRemaining} of ${scanLimit} free scans remaining this month`
+                  : 'Take a photo to identify parts and build your order'}
             </p>
 
-            {/* Demo button — bigger, more visible */}
-            <button
-              onClick={onTryDemo}
-              className="inline-flex items-center gap-2.5 px-6 py-3 rounded-2xl text-sm font-bold transition-all active:scale-95"
-              style={{
-                background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.12), rgba(0, 240, 255, 0.05))',
-                color: '#00F0FF',
-                border: '1px solid rgba(0, 240, 255, 0.2)',
-                minHeight: '48px',
-                boxShadow: '0 0 20px rgba(0, 240, 255, 0.06)',
-                fontFamily: 'var(--font-montserrat)',
-              }}
-            >
-              <Zap className="w-4 h-4" />
-              Try Demo Analysis
-            </button>
+            {/* Demo button (show for everyone) + scan limit indicator */}
+            <div className="flex flex-col items-center gap-3">
+              {!canScan && user ? (
+                <div
+                  className="inline-flex items-center gap-2.5 px-6 py-3 rounded-2xl text-sm font-bold"
+                  style={{
+                    background: 'rgba(248, 113, 113, 0.08)',
+                    color: '#F87171',
+                    border: '1px solid rgba(248, 113, 113, 0.2)',
+                    minHeight: '48px',
+                  }}
+                >
+                  <Lock className="w-4 h-4" />
+                  Upgrade to Continue
+                </div>
+              ) : (
+                <button
+                  onClick={onTryDemo}
+                  className="inline-flex items-center gap-2.5 px-6 py-3 rounded-2xl text-sm font-bold transition-all active:scale-95"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.12), rgba(0, 240, 255, 0.05))',
+                    color: '#00F0FF',
+                    border: '1px solid rgba(0, 240, 255, 0.2)',
+                    minHeight: '48px',
+                    boxShadow: '0 0 20px rgba(0, 240, 255, 0.06)',
+                    fontFamily: 'var(--font-montserrat)',
+                  }}
+                >
+                  <Zap className="w-4 h-4" />
+                  Try Demo Analysis
+                </button>
+              )}
+            </div>
           </motion.div>
         </div>
 
         {/* Camera controls — at bottom of viewfinder */}
         <div className="absolute bottom-5 left-0 right-0 flex items-center justify-center gap-10">
-          {/* Voice note */}
+          {/* Gallery / Photo Library (left position) */}
           <button
-            onClick={() => setRecording(!recording)}
+            onClick={openLibrary}
             className="w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-95"
             style={{
-              background: recording
-                ? 'rgba(248, 113, 113, 0.15)'
-                : 'linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))',
-              border: `1.5px solid ${recording ? 'rgba(248, 113, 113, 0.3)' : 'rgba(255,255,255,0.1)'}`,
-              color: recording ? '#F87171' : 'rgba(255,255,255,0.5)',
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))',
+              border: '1.5px solid rgba(255,255,255,0.1)',
+              color: 'rgba(255,255,255,0.5)',
               backdropFilter: 'blur(12px)',
               minHeight: '60px',
               minWidth: '60px',
             }}
           >
-            <Mic className="w-5 h-5" />
+            <ImagePlus className="w-5 h-5" />
           </button>
 
           {/* Shutter button — hero element (CAMERA) */}
@@ -221,21 +241,34 @@ export function CaptureView({ jobs, onPhotoCapture, onOpenJob, onTryDemo }: Capt
             </div>
           </button>
 
-          {/* Gallery / Photo Library */}
-          <button
-            onClick={openLibrary}
-            className="w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-95"
-            style={{
-              background: 'linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))',
-              border: '1.5px solid rgba(255,255,255,0.1)',
-              color: 'rgba(255,255,255,0.5)',
-              backdropFilter: 'blur(12px)',
-              minHeight: '60px',
-              minWidth: '60px',
-            }}
-          >
-            <ImagePlus className="w-5 h-5" />
-          </button>
+          {/* Scan count indicator (right position) — only for free logged-in users */}
+          {user && scanLimit > 0 ? (
+            <div
+              className="w-14 h-14 rounded-full flex flex-col items-center justify-center"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))',
+                border: `1.5px solid ${scansRemaining <= 1 ? 'rgba(248, 113, 113, 0.3)' : 'rgba(0, 240, 255, 0.15)'}`,
+                backdropFilter: 'blur(12px)',
+                minHeight: '60px',
+                minWidth: '60px',
+              }}
+            >
+              <span
+                className="text-lg font-black leading-none"
+                style={{
+                  color: scansRemaining <= 1 ? '#F87171' : scansRemaining <= 2 ? '#FBBF24' : '#00F0FF',
+                  fontFamily: 'var(--font-montserrat)',
+                }}
+              >
+                {scansRemaining}
+              </span>
+              <span className="text-[7px] uppercase tracking-wider mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                left
+              </span>
+            </div>
+          ) : (
+            <div className="w-14 h-14" style={{ minHeight: '60px', minWidth: '60px' }} />
+          )}
         </div>
 
         {/* Hidden file inputs — camera vs library */}

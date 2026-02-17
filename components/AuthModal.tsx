@@ -17,6 +17,14 @@ export function AuthModal({ open, onClose, initialMode = 'login' }: AuthModalPro
   const [submitting, setSubmitting] = useState(false);
   const { login, signup, error, clearError } = useAuth();
 
+  // Sync mode when initialMode changes and reset form on open
+  React.useEffect(() => {
+    if (open) {
+      setMode(initialMode);
+      reset();
+    }
+  }, [initialMode, open]);
+
   // Form state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

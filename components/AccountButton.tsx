@@ -13,6 +13,7 @@ export function AccountButton({ onSignIn }: AccountButtonProps) {
   const { user, token, logout, scansRemaining, scanLimit } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
+  const [upgradeError, setUpgradeError] = useState('');
 
   if (!user) {
     return (
@@ -37,11 +38,13 @@ export function AccountButton({ onSignIn }: AccountButtonProps) {
   const handleUpgrade = async () => {
     if (!token) return;
     setUpgrading(true);
+    setUpgradeError('');
     try {
       const url = await getCheckoutUrl(token, 'pro');
       window.location.href = url;
-    } catch (err) {
-      console.error('Upgrade error:', err);
+    } catch (err: any) {
+      setUpgradeError(err?.message || 'Upgrade failed — try again');
+      setTimeout(() => setUpgradeError(''), 5000);
     } finally {
       setUpgrading(false);
     }
@@ -154,14 +157,14 @@ export function AccountButton({ onSignIn }: AccountButtonProps) {
                     disabled={upgrading}
                     className="w-full mt-3 py-2 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95"
                     style={{
-                      background: 'rgba(0, 240, 255, 0.1)',
-                      color: '#00F0FF',
-                      border: '1px solid rgba(0, 240, 255, 0.2)',
+                      background: upgradeError ? 'rgba(248, 113, 113, 0.1)' : 'rgba(0, 240, 255, 0.1)',
+                      color: upgradeError ? '#F87171' : '#00F0FF',
+                      border: `1px solid ${upgradeError ? 'rgba(248, 113, 113, 0.2)' : 'rgba(0, 240, 255, 0.2)'}`,
                       fontFamily: 'var(--font-montserrat)',
                     }}
                   >
                     <Zap className="w-3 h-3" />
-                    {upgrading ? 'Loading...' : 'Upgrade to Pro — $49/mo'}
+                    {upgradeError || (upgrading ? 'Loading...' : 'Upgrade to Pro — $49/mo')}
                   </button>
                 </div>
               )}

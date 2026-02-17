@@ -249,7 +249,7 @@ function defaultPrefs(): UserPreferences {
 // API CALLS (identify & search)
 // ============================================================================
 
-export async function identifyPhoto(dataUrl: string, vesselContext?: any): Promise<{ parts: IdentifiedPart[]; notes?: string; systemContext?: string; jobRecommendation?: string }> {
+export async function identifyPhoto(dataUrl: string, vesselContext?: any, authToken?: string | null): Promise<{ parts: IdentifiedPart[]; notes?: string; systemContext?: string; jobRecommendation?: string }> {
   const res = await fetch(dataUrl);
   const blob = await res.blob();
   const formData = new FormData();
@@ -258,12 +258,26 @@ export async function identifyPhoto(dataUrl: string, vesselContext?: any): Promi
     formData.append('vessel_context', JSON.stringify(vesselContext));
   }
 
+  const headers: Record<string, string> = {};
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
+  }
+
   const apiRes = await fetch('https://api.picsea.app/api/identify', {
     method: 'POST',
+    headers,
     body: formData,
   });
-  const data = await apiRes.json();
-  if (!apiRes.ok) throw new Error(data.error || 'Identification failed');
+  
+  // Safe JSON parse — handle HTML error pages from Railway/Cloudflare
+  const ct = apiRes.headers.get('content-type') || '';
+  let data: any;
+  if (ct.includes('application/json')) {
+    data = await apiRes.json();
+  } else {
+    throw new Error(apiRes.ok ? 'Unexpected response from server' : `Server error (${apiRes.status})`);
+  }
+  if (!apiRes.ok) throw new Error(data.error || `Identification failed (${apiRes.status})`);
   
   // Map API response parts to include intelligence
   const parts = (data.parts || []).map((p: any) => ({
@@ -285,8 +299,14 @@ export async function identifyPhoto(dataUrl: string, vesselContext?: any): Promi
   };
 }
 
-export async function searchParts(query: string): Promise<IdentifiedPart[]> {
-  const res = await fetch(`https://api.picsea.app/api/parts/search?q=${encodeURIComponent(query)}&limit=10`);
+export async function searchParts(query: string, authToken?: string | null): Promise<IdentifiedPart[]> {
+  const headers: Record<string, string> = {};
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+  
+  const res = await fetch(`https://api.picsea.app/api/parts/search?q=${encodeURIComponent(query)}&limit=10`, { headers });
+  if (!res.ok) return [];
+  const ct = res.headers.get('content-type') || '';
+  if (!ct.includes('application/json')) return [];
   const data = await res.json();
   return data.parts || [];
 }

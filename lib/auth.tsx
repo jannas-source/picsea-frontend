@@ -6,6 +6,16 @@ const API_BASE = 'https://api.picsea.app';
 const TOKEN_KEY = 'picsea_token';
 const USER_KEY = 'picsea_user';
 
+/** Safe JSON parse — handles HTML error pages, network errors, empty responses */
+async function safeJson(res: Response): Promise<any> {
+  const ct = res.headers.get('content-type') || '';
+  if (!ct.includes('application/json')) {
+    const text = await res.text().catch(() => '');
+    throw new Error(res.ok ? 'Unexpected response from server' : `Server error (${res.status})`);
+  }
+  return res.json();
+}
+
 export interface User {
   id: number;
   email: string;
@@ -50,20 +60,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Load saved auth on mount
+  // Load saved auth on mount, validate token isn't expired
   useEffect(() => {
     const savedToken = localStorage.getItem(TOKEN_KEY);
     const savedUser = localStorage.getItem(USER_KEY);
     if (savedToken && savedUser) {
       try {
-        setToken(savedToken);
-        setUser(JSON.parse(savedUser));
+        // Check if JWT is expired (decode payload without verification)
+        const payload = JSON.parse(atob(savedToken.split('.')[1]));
+        const expiresAt = payload.exp * 1000;
+        if (Date.now() >= expiresAt) {
+          // Token expired — clean up silently
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
+        } else {
+          setToken(savedToken);
+          setUser(JSON.parse(savedUser));
+        }
       } catch {
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
       }
     }
     setLoading(false);
+  }, []);
+
+  // Sync auth state across tabs via storage event
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === TOKEN_KEY) {
+        if (!e.newValue) {
+          // Logged out in another tab
+          setToken(null);
+          setUser(null);
+        } else {
+          setToken(e.newValue);
+          const u = localStorage.getItem(USER_KEY);
+          if (u) try { setUser(JSON.parse(u)); } catch { /* ignore */ }
+        }
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
   const saveAuth = (t: string, u: User) => {
@@ -89,11 +127,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Login failed');
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data?.error || `Login failed (${res.status})`);
       saveAuth(data.token, data.user);
     } catch (err: any) {
-      setError(err.message);
+      const msg = err.message === 'Failed to fetch' ? 'Network error — check your connection' : err.message;
+      setError(msg);
       throw err;
     } finally {
       setLoading(false);
@@ -109,11 +148,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(signupData),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Signup failed');
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data?.error || `Signup failed (${res.status})`);
       saveAuth(data.token, data.user);
     } catch (err: any) {
-      setError(err.message);
+      const msg = err.message === 'Failed to fetch' ? 'Network error — check your connection' : err.message;
+      setError(msg);
       throw err;
     } finally {
       setLoading(false);
@@ -133,13 +173,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
-        const data = await res.json();
-        setUser(data.user);
-        localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+        const data = await safeJson(res);
+        if (data?.user) {
+          setUser(data.user);
+          localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+        }
       } else if (res.status === 401) {
         clearAuth();
       }
-    } catch { /* silent */ }
+    } catch { /* silent — don't crash on network errors */ }
   }, [token]);
 
   const scanLimit = user?.plan === 'free' ? 5 : -1;
@@ -175,8 +217,8 @@ export async function getCheckoutUrl(token: string, plan: 'pro' | 'shop'): Promi
     },
     body: JSON.stringify({ plan }),
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Failed to create checkout');
+  const data = await safeJson(res);
+  if (!res.ok) throw new Error(data?.error || 'Failed to create checkout');
   return data.url;
 }
 
@@ -189,7 +231,7 @@ export async function getBillingPortalUrl(token: string): Promise<string> {
       Authorization: `Bearer ${token}`,
     },
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Failed to open billing portal');
+  const data = await safeJson(res);
+  if (!res.ok) throw new Error(data?.error || 'Failed to open billing portal');
   return data.url;
 }
