@@ -1,15 +1,17 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
 import { BOMItem } from '@/lib/types';
 import {
   Package, Check, X, ChevronRight, Minus, Plus,
-  AlertTriangle, ShieldCheck,
+  AlertTriangle, ShieldCheck, Clock, Truck, Wrench,
+  Link2,
 } from 'lucide-react';
 
 interface PartCardProps {
   item: BOMItem;
+  vesselVoltage?: number;
   onConfirm: (id: string) => void;
   onRemove: (id: string) => void;
   onQuantityChange: (id: string, qty: number) => void;
@@ -24,13 +26,13 @@ function confidenceColor(c: number): string {
 }
 
 function statusBadge(status: string) {
-  const map: Record<string, { bg: string; color: string; label: string }> = {
-    pending: { bg: 'rgba(251, 191, 36, 0.1)', color: '#FBBF24', label: 'Pending' },
-    ordered: { bg: 'rgba(0, 240, 255, 0.1)', color: '#00F0FF', label: 'Ordered' },
-    received: { bg: 'rgba(52, 211, 153, 0.1)', color: '#34D399', label: 'Received' },
-    installed: { bg: 'rgba(52, 211, 153, 0.15)', color: '#34D399', label: 'Installed' },
-    verified: { bg: 'rgba(52, 211, 153, 0.2)', color: '#34D399', label: 'Verified' },
-    failed: { bg: 'rgba(248, 113, 113, 0.1)', color: '#F87171', label: 'Failed' },
+  const map: Record<string, { bg: string; color: string; label: string; icon: typeof Package }> = {
+    pending: { bg: 'rgba(251, 191, 36, 0.1)', color: '#FBBF24', label: 'Pending', icon: Clock },
+    ordered: { bg: 'rgba(0, 240, 255, 0.1)', color: '#00F0FF', label: 'Ordered', icon: Truck },
+    received: { bg: 'rgba(52, 211, 153, 0.1)', color: '#34D399', label: 'Received', icon: Package },
+    installed: { bg: 'rgba(16, 185, 129, 0.15)', color: '#10B981', label: 'Installed', icon: Wrench },
+    verified: { bg: 'rgba(52, 211, 153, 0.2)', color: '#34D399', label: 'Verified', icon: Check },
+    failed: { bg: 'rgba(248, 113, 113, 0.1)', color: '#F87171', label: 'Failed', icon: AlertTriangle },
   };
   return map[status] || map.pending;
 }
@@ -44,7 +46,17 @@ function bestPrice(item: BOMItem): { price: number; supplier: string } | null {
   return { price: sorted[0].price_cents, supplier: sorted[0].supplier };
 }
 
-export function PartCard({ item, onConfirm, onRemove, onQuantityChange, onTap }: PartCardProps) {
+function stockStatus(item: BOMItem): { label: string; color: string } | null {
+  if (!item.listings || item.listings.length === 0) return null;
+  const anyInStock = item.listings.some((l) => l.in_stock);
+  const lowStock = item.listings.some((l) => l.in_stock && l.stock_qty <= 5);
+  
+  if (!anyInStock) return { label: 'Out of Stock', color: '#F87171' };
+  if (lowStock) return { label: 'Low Stock', color: '#FBBF24' };
+  return { label: 'In Stock', color: '#34D399' };
+}
+
+export function PartCard({ item, vesselVoltage, onConfirm, onRemove, onQuantityChange, onTap }: PartCardProps) {
   const x = useMotionValue(0);
   const bg = useTransform(x, [-120, -60, 0, 60, 120], [
     'rgba(248, 113, 113, 0.15)',
@@ -59,8 +71,11 @@ export function PartCard({ item, onConfirm, onRemove, onQuantityChange, onTap }:
   const [swiped, setSwiped] = useState(false);
   const price = bestPrice(item);
   const status = statusBadge(item.status);
+  const StatusIcon = status.icon;
   const conf = item.confidence ?? 0;
   const confColor = confidenceColor(conf);
+  const stock = stockStatus(item);
+  const hasCompanions = item.intelligence?.context?.companion_parts && item.intelligence.context.companion_parts.length > 0;
 
   const handleDragEnd = (_: any, info: PanInfo) => {
     const threshold = 80;
@@ -135,16 +150,17 @@ export function PartCard({ item, onConfirm, onRemove, onQuantityChange, onTap }:
             </div>
 
             {/* Badges row */}
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 flex-wrap">
               {/* Status badge */}
               <span
-                className="text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full"
+                className="text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full flex items-center gap-1"
                 style={{
                   background: status.bg,
                   color: status.color,
                   border: `1px solid ${status.color}20`,
                 }}
               >
+                <StatusIcon className="w-2.5 h-2.5" />
                 {status.label}
               </span>
 
@@ -162,13 +178,30 @@ export function PartCard({ item, onConfirm, onRemove, onQuantityChange, onTap }:
                 </span>
               )}
 
-              {/* Price */}
-              {price && (
-                <span className="text-[11px] font-semibold" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                  ${(price.price / 100).toFixed(2)}
-                  {item.quantity > 1 && (
-                    <span style={{ color: 'rgba(255,255,255,0.3)' }}> ea</span>
-                  )}
+              {/* Stock status */}
+              {stock && (
+                <span
+                  className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+                  style={{
+                    color: stock.color,
+                    background: `${stock.color}10`,
+                  }}
+                >
+                  {stock.label}
+                </span>
+              )}
+
+              {/* Companion parts indicator */}
+              {hasCompanions && (
+                <span
+                  className="text-[9px] px-1.5 py-0.5 rounded-full flex items-center gap-0.5"
+                  style={{
+                    color: 'rgba(0, 240, 255, 0.6)',
+                    background: 'rgba(0, 240, 255, 0.06)',
+                  }}
+                >
+                  <Link2 className="w-2.5 h-2.5" />
+                  +{item.intelligence!.context!.companion_parts!.length}
                 </span>
               )}
             </div>
@@ -241,10 +274,26 @@ export function PartCard({ item, onConfirm, onRemove, onQuantityChange, onTap }:
         {/* Item notes */}
         {item.notes && (
           <div
-            className="mt-2 ml-15 text-[11px] italic pl-[60px]"
+            className="mt-2 text-[11px] italic pl-[60px]"
             style={{ color: 'rgba(255,255,255,0.3)' }}
           >
             {item.notes}
+          </div>
+        )}
+
+        {/* Compatibility warning inline */}
+        {item.intelligence?.context?.compatibility_warning && (
+          <div
+            className="mt-2 ml-[60px] flex items-start gap-1.5 p-2 rounded-lg"
+            style={{
+              background: 'rgba(251, 191, 36, 0.06)',
+              border: '1px solid rgba(251, 191, 36, 0.12)',
+            }}
+          >
+            <AlertTriangle className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: '#FBBF24' }} />
+            <span className="text-[10px]" style={{ color: 'rgba(251, 191, 36, 0.7)' }}>
+              {item.intelligence.context.compatibility_warning}
+            </span>
           </div>
         )}
       </motion.div>

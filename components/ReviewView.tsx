@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { Job, BOMItem, VesselContext } from '@/lib/types';
+import React, { useState, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Job, BOMItem, VesselContext, ItemStatus } from '@/lib/types';
 import { VesselBar } from './VesselBar';
 import { PartCard } from './PartCard';
 import { PartDetail } from './PartDetail';
 import {
-  Search, Package, ShoppingCart, FileText,
-  ChevronDown, ChevronRight, Plus,
+  Search, Package, ShoppingCart,
+  ChevronDown, Camera, AlertTriangle,
+  Clock, Truck, Check, Wrench,
 } from 'lucide-react';
 
 interface ReviewViewProps {
@@ -48,63 +50,99 @@ function groupBySystem(bom: BOMItem[]): SystemGroup[] {
     .sort((a, b) => b.totalCents - a.totalCents);
 }
 
+const STATUS_ICON: Record<ItemStatus, typeof Package> = {
+  pending: Clock,
+  ordered: Truck,
+  received: Package,
+  installed: Wrench,
+  verified: Check,
+  failed: AlertTriangle,
+};
+
+const STATUS_COLOR: Record<ItemStatus, string> = {
+  pending: '#FBBF24',
+  ordered: '#00F0FF',
+  received: '#34D399',
+  installed: '#10B981',
+  verified: '#34D399',
+  failed: '#F87171',
+};
+
 export function ReviewView({ job, allJobs, onUpdateJob, onSelectJob, onGoCapture }: ReviewViewProps) {
   const [selectedPart, setSelectedPart] = useState<BOMItem | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [collapsedSystems, setCollapsedSystems] = useState<Set<string>>(new Set());
+  const [showJobPicker, setShowJobPicker] = useState(false);
+  const [showOrderConfirm, setShowOrderConfirm] = useState(false);
 
-  // If no active job, show job picker
+  const activeJobs = useMemo(
+    () => allJobs.filter((j) => j.status === 'active' || j.status === 'ordered'),
+    [allJobs]
+  );
+
+  // If no active job, show empty state
   if (!job) {
-    const activeJobs = allJobs.filter((j) => j.status === 'active' || j.status === 'ordered');
     return (
-      <div className="p-4">
-        <div className="text-center py-12">
-          <Package className="w-12 h-12 mx-auto mb-4" style={{ color: 'rgba(0, 240, 255, 0.3)' }} />
+      <div className="flex flex-col items-center justify-center px-6" style={{ minHeight: 'calc(100dvh - 64px - 80px)' }}>
+        <div className="text-center">
+          <div
+            className="w-20 h-20 rounded-full mx-auto mb-5 flex items-center justify-center"
+            style={{
+              background: 'rgba(0, 240, 255, 0.04)',
+              border: '1.5px solid rgba(0, 240, 255, 0.1)',
+            }}
+          >
+            <Package className="w-9 h-9" style={{ color: 'rgba(0, 240, 255, 0.3)' }} />
+          </div>
           <h2
             className="text-lg font-bold text-white mb-2"
             style={{ fontFamily: 'var(--font-montserrat)' }}
           >
             {activeJobs.length === 0 ? 'No Active Jobs' : 'Select a Job'}
           </h2>
-          <p className="text-xs mb-6" style={{ color: 'rgba(255,255,255,0.35)' }}>
+          <p className="text-sm mb-8" style={{ color: 'rgba(255,255,255,0.35)', lineHeight: '1.6' }}>
             {activeJobs.length === 0
-              ? 'Take a photo to start a new job'
+              ? 'Start by capturing a photo or running a demo analysis'
               : 'Pick a job to review its parts list'}
           </p>
           {activeJobs.length === 0 ? (
             <button
               onClick={onGoCapture}
-              className="px-6 py-3 rounded-xl text-sm font-bold"
+              className="inline-flex items-center gap-2.5 px-7 py-4 rounded-2xl text-sm font-bold transition-all active:scale-95"
               style={{
                 background: '#00F0FF',
                 color: '#000C18',
                 fontFamily: 'var(--font-montserrat)',
-                minHeight: '48px',
+                minHeight: '56px',
+                boxShadow: '0 0 24px rgba(0, 240, 255, 0.2)',
               }}
             >
+              <Camera className="w-5 h-5" />
               Open Camera
             </button>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2 max-w-sm mx-auto">
               {activeJobs.map((j) => (
                 <button
                   key={j.id}
                   onClick={() => onSelectJob(j.id)}
-                  className="w-full text-left p-4 rounded-2xl transition-all"
+                  className="w-full text-left p-4 rounded-2xl transition-all active:scale-[0.98]"
                   style={{
                     background: 'rgba(0, 26, 46, 0.4)',
-                    border: '1px solid rgba(255,255,255,0.06)',
-                    minHeight: '60px',
+                    border: '1px solid rgba(0, 240, 255, 0.08)',
+                    minHeight: '64px',
                   }}
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-sm font-bold text-white">{j.name}</div>
-                      <div className="text-[11px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                        {j.bom.length} parts · {j.vessel}
+                      <div className="text-sm font-bold text-white" style={{ fontFamily: 'var(--font-montserrat)' }}>
+                        {j.vessel || j.name}
+                      </div>
+                      <div className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                        {j.bom.length} parts · {j.vesselContext?.make} {j.vesselContext?.model}
                       </div>
                     </div>
-                    <ChevronRight className="w-4 h-4" style={{ color: 'rgba(255,255,255,0.2)' }} />
+                    <ChevronDown className="w-4 h-4 -rotate-90" style={{ color: 'rgba(0, 240, 255, 0.4)' }} />
                   </div>
                 </button>
               ))}
@@ -127,48 +165,130 @@ export function ReviewView({ job, allJobs, onUpdateJob, onSelectJob, onGoCapture
           (i) =>
             i.name.toLowerCase().includes(q) ||
             i.mpn.toLowerCase().includes(q) ||
-            i.manufacturer.toLowerCase().includes(q)
+            i.manufacturer.toLowerCase().includes(q) ||
+            (i.notes && i.notes.toLowerCase().includes(q))
         ),
       }))
       .filter((g) => g.items.length > 0);
   }, [groups, searchQuery]);
 
+  // Cost breakdown by status
+  const costBreakdown = useMemo(() => {
+    const breakdown: Record<string, { count: number; cents: number }> = {};
+    job.bom.forEach((item) => {
+      const status = item.status || 'pending';
+      if (!breakdown[status]) breakdown[status] = { count: 0, cents: 0 };
+      breakdown[status].count += 1; // count distinct items, not quantities
+      breakdown[status].cents += bestPriceCents(item) * item.quantity;
+    });
+    return breakdown;
+  }, [job.bom]);
+
   const grandTotal = job.bom.reduce((s, i) => s + bestPriceCents(i) * i.quantity, 0);
   const confirmedCount = job.bom.filter((i) => i.confirmed || i.status !== 'pending').length;
   const totalItems = job.bom.length;
+  const pendingCount = job.bom.filter((i) => i.status === 'pending').length;
 
-  const toggleSystem = (sys: string) => {
+  const toggleSystem = useCallback((sys: string) => {
     setCollapsedSystems((prev) => {
       const next = new Set(prev);
       if (next.has(sys)) next.delete(sys);
       else next.add(sys);
       return next;
     });
-  };
+  }, []);
 
-  const handleConfirm = (itemId: string) => {
+  const handleConfirm = useCallback((itemId: string) => {
     const updatedBom = job.bom.map((i) =>
       i.id === itemId ? { ...i, confirmed: true, status: 'ordered' as const } : i
     );
     onUpdateJob({ ...job, bom: updatedBom });
-  };
+  }, [job, onUpdateJob]);
 
-  const handleRemove = (itemId: string) => {
+  const handleRemove = useCallback((itemId: string) => {
     const updatedBom = job.bom.filter((i) => i.id !== itemId);
     onUpdateJob({ ...job, bom: updatedBom });
-  };
+  }, [job, onUpdateJob]);
 
-  const handleQuantityChange = (itemId: string, qty: number) => {
+  const handleQuantityChange = useCallback((itemId: string, qty: number) => {
     const updatedBom = job.bom.map((i) => (i.id === itemId ? { ...i, quantity: qty } : i));
     onUpdateJob({ ...job, bom: updatedBom });
-  };
+  }, [job, onUpdateJob]);
 
-  const handleVesselUpdate = (vessel: VesselContext) => {
+  const handleVesselUpdate = useCallback((vessel: VesselContext) => {
     onUpdateJob({ ...job, vesselContext: vessel });
-  };
+  }, [job, onUpdateJob]);
 
   return (
     <div className="flex flex-col h-full">
+      {/* Job selector (compact) */}
+      {activeJobs.length > 1 && (
+        <div className="px-4 pt-2">
+          <button
+            onClick={() => setShowJobPicker(!showJobPicker)}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all"
+            style={{
+              background: 'rgba(0, 240, 255, 0.04)',
+              border: '1px solid rgba(0, 240, 255, 0.1)',
+              minHeight: '40px',
+            }}
+          >
+            <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: '#00F0FF', fontFamily: 'var(--font-montserrat)' }}>
+              {job.vessel || job.name}
+            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                {activeJobs.length} jobs
+              </span>
+              <ChevronDown
+                className="w-3.5 h-3.5 transition-transform"
+                style={{
+                  color: 'rgba(0, 240, 255, 0.5)',
+                  transform: showJobPicker ? 'rotate(180deg)' : 'rotate(0deg)',
+                }}
+              />
+            </div>
+          </button>
+
+          <AnimatePresence>
+            {showJobPicker && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="space-y-1 pt-1.5">
+                  {activeJobs
+                    .filter((j) => j.id !== job.id)
+                    .map((j) => (
+                      <button
+                        key={j.id}
+                        onClick={() => {
+                          onSelectJob(j.id);
+                          setShowJobPicker(false);
+                        }}
+                        className="w-full text-left px-3 py-2.5 rounded-xl transition-all active:scale-[0.98]"
+                        style={{
+                          background: 'rgba(0, 26, 46, 0.3)',
+                          border: '1px solid rgba(255,255,255,0.04)',
+                          minHeight: '48px',
+                        }}
+                      >
+                        <div className="text-xs font-bold text-white">{j.vessel || j.name}</div>
+                        <div className="text-[10px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                          {j.bom.length} parts · {j.vesselContext?.make} {j.vesselContext?.model}
+                        </div>
+                      </button>
+                    ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+
       {/* Vessel context bar */}
       {job.vesselContext && (
         <VesselBar
@@ -195,7 +315,7 @@ export function ReviewView({ job, allJobs, onUpdateJob, onSelectJob, onGoCapture
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-[rgba(255,255,255,0.25)]"
-            style={{ border: 'none' }}
+            style={{ border: 'none', fontSize: '14px', padding: '0' }}
           />
           {searchQuery && (
             <button
@@ -209,7 +329,7 @@ export function ReviewView({ job, allJobs, onUpdateJob, onSelectJob, onGoCapture
         </div>
       </div>
 
-      {/* Progress bar */}
+      {/* Progress bar + status summary */}
       <div className="px-4 pb-2">
         <div className="flex items-center justify-between text-[10px] mb-1.5">
           <span style={{ color: 'rgba(255,255,255,0.35)' }}>
@@ -228,6 +348,32 @@ export function ReviewView({ job, allJobs, onUpdateJob, onSelectJob, onGoCapture
               boxShadow: '0 0 8px rgba(0, 240, 255, 0.4)',
             }}
           />
+        </div>
+
+        {/* Status chip summary */}
+        <div className="flex items-center gap-2 mt-2 overflow-x-auto scrollbar-hide pb-0.5">
+          {Object.entries(costBreakdown).map(([status, { count, cents }]) => {
+            const Icon = STATUS_ICON[status as ItemStatus] || Clock;
+            const color = STATUS_COLOR[status as ItemStatus] || '#FBBF24';
+            return (
+              <div
+                key={status}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full flex-shrink-0"
+                style={{
+                  background: `${color}10`,
+                  border: `1px solid ${color}20`,
+                }}
+              >
+                <Icon className="w-2.5 h-2.5" style={{ color }} />
+                <span className="text-[9px] font-bold uppercase" style={{ color }}>
+                  {count} {status}
+                </span>
+                <span className="text-[9px]" style={{ color: `${color}80` }}>
+                  ${(cents / 100).toFixed(0)}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -279,6 +425,7 @@ export function ReviewView({ job, allJobs, onUpdateJob, onSelectJob, onGoCapture
                   <PartCard
                     key={item.id}
                     item={item}
+                    vesselVoltage={job.vesselContext?.voltage}
                     onConfirm={handleConfirm}
                     onRemove={handleRemove}
                     onQuantityChange={handleQuantityChange}
@@ -295,7 +442,7 @@ export function ReviewView({ job, allJobs, onUpdateJob, onSelectJob, onGoCapture
         <div
           className="sticky bottom-0 left-0 right-0 px-4 py-3"
           style={{
-            background: 'linear-gradient(0deg, rgba(0, 6, 12, 0.95) 70%, transparent)',
+            background: 'linear-gradient(0deg, rgba(0, 6, 12, 0.98) 70%, transparent)',
             backdropFilter: 'blur(12px)',
           }}
         >
@@ -313,14 +460,21 @@ export function ReviewView({ job, allJobs, onUpdateJob, onSelectJob, onGoCapture
               <div className="text-xl font-bold" style={{ color: '#00F0FF', fontFamily: 'var(--font-montserrat)' }}>
                 ${(grandTotal / 100).toFixed(2)}
               </div>
+              {pendingCount > 0 && (
+                <div className="text-[10px] mt-0.5" style={{ color: 'rgba(251, 191, 36, 0.6)' }}>
+                  {pendingCount} pending review
+                </div>
+              )}
             </div>
             <button
-              className="px-5 py-3 rounded-xl text-sm font-bold flex items-center gap-2"
+              onClick={() => setShowOrderConfirm(true)}
+              className="px-5 py-3 rounded-xl text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
               style={{
                 background: '#00F0FF',
                 color: '#000C18',
                 fontFamily: 'var(--font-montserrat)',
                 minHeight: '48px',
+                boxShadow: '0 0 20px rgba(0, 240, 255, 0.15)',
               }}
             >
               <ShoppingCart className="w-4 h-4" />
@@ -330,9 +484,137 @@ export function ReviewView({ job, allJobs, onUpdateJob, onSelectJob, onGoCapture
         </div>
       )}
 
+      {/* Order Confirmation Modal */}
+      <AnimatePresence>
+        {showOrderConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50"
+            style={{ background: 'rgba(0, 6, 12, 0.85)', backdropFilter: 'blur(12px)' }}
+            onClick={() => setShowOrderConfirm(false)}
+          >
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+              className="absolute bottom-0 left-0 right-0 rounded-t-3xl overflow-hidden"
+              style={{
+                maxHeight: '70vh',
+                background: 'linear-gradient(180deg, #001a2e 0%, #000c18 100%)',
+                border: '1px solid rgba(0, 240, 255, 0.1)',
+                borderBottom: 'none',
+              }}
+            >
+              {/* Drag handle */}
+              <div className="flex justify-center pt-3 pb-2">
+                <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }} />
+              </div>
+
+              <div className="px-5 pb-8">
+                <h3 className="text-lg font-bold text-white mb-1" style={{ fontFamily: 'var(--font-montserrat)' }}>
+                  Confirm Order
+                </h3>
+                <p className="text-xs mb-5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  Review your order for {job.vessel || job.name}
+                </p>
+
+                {/* Order summary */}
+                <div className="space-y-3 mb-6">
+                  {Object.entries(costBreakdown).map(([status, { count, cents }]) => {
+                    const color = STATUS_COLOR[status as ItemStatus] || '#FBBF24';
+                    return (
+                      <div key={status} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full" style={{ background: color }} />
+                          <span className="text-xs capitalize text-white">{status}</span>
+                          <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                            ({count} items)
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold" style={{ color }}>
+                          ${(cents / 100).toFixed(2)}
+                        </span>
+                      </div>
+                    );
+                  })}
+
+                  <div className="h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-white">Total</span>
+                    <span className="text-lg font-bold" style={{ color: '#00F0FF', fontFamily: 'var(--font-montserrat)' }}>
+                      ${(grandTotal / 100).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Warnings */}
+                {pendingCount > 0 && (
+                  <div
+                    className="flex items-start gap-2.5 p-3 rounded-xl mb-5"
+                    style={{
+                      background: 'rgba(251, 191, 36, 0.06)',
+                      border: '1px solid rgba(251, 191, 36, 0.15)',
+                    }}
+                  >
+                    <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#FBBF24' }} />
+                    <span className="text-xs" style={{ color: 'rgba(251, 191, 36, 0.8)' }}>
+                      {pendingCount} part{pendingCount > 1 ? 's' : ''} still pending review. Confirm all parts before placing order.
+                    </span>
+                  </div>
+                )}
+
+                {/* Action buttons */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowOrderConfirm(false)}
+                    className="flex-1 py-3.5 rounded-xl text-sm font-bold transition-all active:scale-95"
+                    style={{
+                      background: 'rgba(255,255,255,0.04)',
+                      color: 'rgba(255,255,255,0.5)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      fontFamily: 'var(--font-montserrat)',
+                      minHeight: '52px',
+                    }}
+                  >
+                    Go Back
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Mark all pending as ordered
+                      const updatedBom = job.bom.map((i) =>
+                        i.status === 'pending' ? { ...i, confirmed: true, status: 'ordered' as const } : i
+                      );
+                      onUpdateJob({ ...job, bom: updatedBom, status: 'ordered' });
+                      setShowOrderConfirm(false);
+                    }}
+                    className="flex-1 py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-95"
+                    style={{
+                      background: '#00F0FF',
+                      color: '#000C18',
+                      fontFamily: 'var(--font-montserrat)',
+                      minHeight: '52px',
+                      boxShadow: '0 0 24px rgba(0, 240, 255, 0.2)',
+                    }}
+                  >
+                    <Check className="w-4 h-4" />
+                    Place Order
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Part detail modal */}
       <PartDetail
         item={selectedPart}
+        vesselVoltage={job.vesselContext?.voltage}
         onClose={() => setSelectedPart(null)}
         onConfirm={handleConfirm}
       />

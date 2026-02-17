@@ -6,11 +6,13 @@ import { BOMItem } from '@/lib/types';
 import {
   X, Package, ShieldCheck, ExternalLink,
   Wrench, AlertTriangle, DollarSign, Clock,
-  Info, Truck, Lightbulb,
+  Info, Truck, Lightbulb, Link2, Zap,
+  CheckCircle, XCircle,
 } from 'lucide-react';
 
 interface PartDetailProps {
   item: BOMItem | null;
+  vesselVoltage?: number;
   onClose: () => void;
   onConfirm: (id: string) => void;
 }
@@ -22,7 +24,14 @@ function confidenceColor(c: number): string {
   return '#F87171';
 }
 
-export function PartDetail({ item, onClose, onConfirm }: PartDetailProps) {
+function confidenceLabel(c: number): string {
+  if (c >= 0.95) return 'High confidence';
+  if (c >= 0.85) return 'Good match';
+  if (c >= 0.70) return 'Probable match';
+  return 'Verify part number';
+}
+
+export function PartDetail({ item, vesselVoltage, onClose, onConfirm }: PartDetailProps) {
   if (!item) return null;
 
   const conf = item.confidence ?? 0;
@@ -75,13 +84,13 @@ export function PartDetail({ item, onClose, onConfirm }: PartDetailProps) {
                 <Package className="w-6 h-6" style={{ color: '#00F0FF' }} />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-bold text-white leading-tight">
+                <h3 className="text-lg font-bold text-white leading-tight" style={{ fontFamily: 'var(--font-montserrat)' }}>
                   {item.name}
                 </h3>
                 <div className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.45)' }}>
                   {item.manufacturer} · {item.mpn}
                 </div>
-                <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
                   {conf > 0 && (
                     <span
                       className="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
@@ -92,7 +101,7 @@ export function PartDetail({ item, onClose, onConfirm }: PartDetailProps) {
                       }}
                     >
                       <ShieldCheck className="w-3 h-3" />
-                      {Math.round(conf * 100)}% match confidence
+                      {Math.round(conf * 100)}% — {confidenceLabel(conf)}
                     </span>
                   )}
                 </div>
@@ -154,7 +163,7 @@ export function PartDetail({ item, onClose, onConfirm }: PartDetailProps) {
                 </div>
               )}
 
-              {/* Pricing */}
+              {/* Pricing & Availability */}
               {item.listings && item.listings.length > 0 && (
                 <Section title="Pricing & Availability" icon={<DollarSign className="w-3.5 h-3.5" />}>
                   <div className="space-y-2">
@@ -171,8 +180,37 @@ export function PartDetail({ item, onClose, onConfirm }: PartDetailProps) {
                         >
                           <div>
                             <div className="text-sm font-semibold text-white">{l.supplier}</div>
-                            <div className="text-[10px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                              SKU: {l.sku} · {l.in_stock ? `${l.stock_qty} in stock` : 'Out of stock'}
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                                SKU: {l.sku}
+                              </span>
+                              <span
+                                className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5"
+                                style={{
+                                  background: l.in_stock ? 'rgba(52, 211, 153, 0.1)' : 'rgba(248, 113, 113, 0.1)',
+                                  color: l.in_stock ? '#34D399' : '#F87171',
+                                }}
+                              >
+                                {l.in_stock ? (
+                                  <>
+                                    <CheckCircle className="w-2.5 h-2.5" />
+                                    {l.stock_qty} in stock
+                                  </>
+                                ) : (
+                                  <>
+                                    <XCircle className="w-2.5 h-2.5" />
+                                    Out of stock
+                                  </>
+                                )}
+                              </span>
+                            </div>
+                            {/* Estimated lead time */}
+                            <div className="text-[10px] mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                              {l.in_stock
+                                ? l.stock_qty > 10
+                                  ? 'Ships: 1–2 business days'
+                                  : 'Ships: 2–3 business days (low stock)'
+                                : 'Lead time: 5–7 business days'}
                             </div>
                           </div>
                           <div className="text-right">
@@ -182,6 +220,11 @@ export function PartDetail({ item, onClose, onConfirm }: PartDetailProps) {
                             {l.list_price_cents > l.price_cents && (
                               <div className="text-[10px] line-through" style={{ color: 'rgba(255,255,255,0.25)' }}>
                                 ${(l.list_price_cents / 100).toFixed(2)}
+                              </div>
+                            )}
+                            {l.list_price_cents > l.price_cents && (
+                              <div className="text-[9px] font-bold" style={{ color: '#34D399' }}>
+                                Save ${((l.list_price_cents - l.price_cents) / 100).toFixed(2)}
                               </div>
                             )}
                           </div>
@@ -205,16 +248,31 @@ export function PartDetail({ item, onClose, onConfirm }: PartDetailProps) {
                     </InfoRow>
                   )}
                   {ctx.installation_notes && (
-                    <div className="text-xs leading-relaxed mt-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                    <div
+                      className="text-xs leading-relaxed mt-2 p-3 rounded-xl"
+                      style={{
+                        color: 'rgba(255,255,255,0.6)',
+                        background: 'rgba(0, 43, 69, 0.2)',
+                        border: '1px solid rgba(255,255,255,0.04)',
+                      }}
+                    >
                       {ctx.installation_notes}
                     </div>
                   )}
                   {ctx.common_mistakes && (
-                    <div className="mt-2 flex items-start gap-2">
-                      <AlertTriangle className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: '#FBBF24' }} />
-                      <span className="text-[11px]" style={{ color: 'rgba(251, 191, 36, 0.7)' }}>
-                        {ctx.common_mistakes}
-                      </span>
+                    <div className="mt-3 flex items-start gap-2 p-3 rounded-xl" style={{
+                      background: 'rgba(251, 191, 36, 0.05)',
+                      border: '1px solid rgba(251, 191, 36, 0.1)',
+                    }}>
+                      <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: '#FBBF24' }} />
+                      <div>
+                        <div className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#FBBF24' }}>
+                          Common Mistakes
+                        </div>
+                        <span className="text-[11px]" style={{ color: 'rgba(251, 191, 36, 0.7)' }}>
+                          {ctx.common_mistakes}
+                        </span>
+                      </div>
                     </div>
                   )}
                 </Section>
@@ -222,21 +280,33 @@ export function PartDetail({ item, onClose, onConfirm }: PartDetailProps) {
 
               {/* Companion Parts */}
               {ctx?.companion_parts && ctx.companion_parts.length > 0 && (
-                <Section title="Often Ordered Together" icon={<Lightbulb className="w-3.5 h-3.5" />}>
-                  <div className="flex flex-wrap gap-2">
-                    {ctx.companion_parts.map((p, i) => (
-                      <span
-                        key={i}
-                        className="text-[11px] px-2.5 py-1 rounded-lg"
-                        style={{
-                          background: 'rgba(0, 240, 255, 0.06)',
-                          color: 'rgba(0, 240, 255, 0.7)',
-                          border: '1px solid rgba(0, 240, 255, 0.1)',
-                        }}
-                      >
-                        {p}
-                      </span>
-                    ))}
+                <Section title="Don't Forget" icon={<Link2 className="w-3.5 h-3.5" />}>
+                  <div
+                    className="p-3 rounded-xl"
+                    style={{
+                      background: 'rgba(0, 240, 255, 0.03)',
+                      border: '1px solid rgba(0, 240, 255, 0.08)',
+                    }}
+                  >
+                    <div className="text-[11px] mb-2" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                      Commonly ordered with this part:
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {ctx.companion_parts.map((p, i) => (
+                        <span
+                          key={i}
+                          className="text-[11px] px-2.5 py-1.5 rounded-lg flex items-center gap-1.5"
+                          style={{
+                            background: 'rgba(0, 240, 255, 0.06)',
+                            color: 'rgba(0, 240, 255, 0.8)',
+                            border: '1px solid rgba(0, 240, 255, 0.1)',
+                          }}
+                        >
+                          <Lightbulb className="w-3 h-3" style={{ color: 'rgba(0, 240, 255, 0.5)' }} />
+                          {p}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </Section>
               )}
@@ -244,14 +314,42 @@ export function PartDetail({ item, onClose, onConfirm }: PartDetailProps) {
               {/* Failure context */}
               {ctx?.failure_mode && (
                 <Section title="Failure Context" icon={<Info className="w-3.5 h-3.5" />}>
-                  <div className="text-xs space-y-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                    <div><strong style={{ color: 'rgba(255,255,255,0.7)' }}>Failure Mode:</strong> {ctx.failure_mode}</div>
+                  <div
+                    className="p-3 rounded-xl space-y-2"
+                    style={{
+                      background: 'rgba(248, 113, 113, 0.03)',
+                      border: '1px solid rgba(248, 113, 113, 0.08)',
+                    }}
+                  >
+                    <div className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                      <strong style={{ color: 'rgba(255,255,255,0.7)' }}>Failure Mode:</strong> {ctx.failure_mode}
+                    </div>
                     {ctx.failure_consequence && (
-                      <div><strong style={{ color: 'rgba(255,255,255,0.7)' }}>Consequence:</strong> {ctx.failure_consequence}</div>
+                      <div className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                        <strong style={{ color: '#F87171' }}>Consequence:</strong> {ctx.failure_consequence}
+                      </div>
                     )}
                     {ctx.upgrade_recommendation && (
-                      <div><strong style={{ color: 'rgba(255,255,255,0.7)' }}>Upgrade:</strong> {ctx.upgrade_recommendation}</div>
+                      <div className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                        <strong style={{ color: '#00F0FF' }}>Upgrade:</strong> {ctx.upgrade_recommendation}
+                      </div>
                     )}
+                  </div>
+                </Section>
+              )}
+
+              {/* Upgrade recommendation (standalone) */}
+              {!ctx?.failure_mode && ctx?.upgrade_recommendation && (
+                <Section title="Recommendation" icon={<Zap className="w-3.5 h-3.5" />}>
+                  <div
+                    className="text-xs p-3 rounded-xl"
+                    style={{
+                      color: 'rgba(0, 240, 255, 0.7)',
+                      background: 'rgba(0, 240, 255, 0.04)',
+                      border: '1px solid rgba(0, 240, 255, 0.08)',
+                    }}
+                  >
+                    {ctx.upgrade_recommendation}
                   </div>
                 </Section>
               )}
@@ -262,7 +360,19 @@ export function PartDetail({ item, onClose, onConfirm }: PartDetailProps) {
                   <InfoRow icon={<DollarSign className="w-3 h-3" />} label="Price Range">
                     {src.estimated_price_range}
                   </InfoRow>
+                  {src.preferred_supplier_type && (
+                    <InfoRow icon={<Truck className="w-3 h-3" />} label="Source">
+                      {src.preferred_supplier_type}
+                    </InfoRow>
+                  )}
                 </Section>
+              )}
+
+              {/* System context */}
+              {intel?.system_context && (
+                <div className="mb-3 text-[10px] px-1" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                  System: {intel.system_context}
+                </div>
               )}
             </div>
 
@@ -280,12 +390,13 @@ export function PartDetail({ item, onClose, onConfirm }: PartDetailProps) {
                     onConfirm(item.id);
                     onClose();
                   }}
-                  className="w-full py-4 rounded-2xl text-sm font-bold flex items-center justify-center gap-2"
+                  className="w-full py-4 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-95"
                   style={{
                     background: '#00F0FF',
                     color: '#000C18',
                     fontFamily: 'var(--font-montserrat)',
                     minHeight: '56px',
+                    boxShadow: '0 0 24px rgba(0, 240, 255, 0.15)',
                   }}
                 >
                   <ShieldCheck className="w-4 h-4" />

@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { Camera, ClipboardList, Clock } from 'lucide-react';
+import { ConnectionStatus } from './ConnectionStatus';
 
 export type AppView = 'capture' | 'review' | 'status';
 
@@ -83,20 +84,23 @@ export function AppShell({ view, onNavigate, activeJobName, bomCount, children }
           </div>
         </div>
 
-        {activeJobName && view === 'review' && (
-          <span
-            className="text-[10px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-full truncate max-w-[180px]"
-            style={{
-              background: 'rgba(0, 240, 255, 0.08)',
-              color: '#00F0FF',
-              border: '1px solid rgba(0, 240, 255, 0.15)',
-              fontFamily: 'var(--font-montserrat)',
-              boxShadow: '0 0 12px rgba(0, 240, 255, 0.06)',
-            }}
-          >
-            {activeJobName}
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          {activeJobName && view === 'review' && (
+            <span
+              className="text-[10px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-full truncate max-w-[160px]"
+              style={{
+                background: 'rgba(0, 240, 255, 0.08)',
+                color: '#00F0FF',
+                border: '1px solid rgba(0, 240, 255, 0.15)',
+                fontFamily: 'var(--font-montserrat)',
+                boxShadow: '0 0 12px rgba(0, 240, 255, 0.06)',
+              }}
+            >
+              {activeJobName}
+            </span>
+          )}
+          <ConnectionStatus />
+        </div>
       </header>
 
       {/* Main content */}
