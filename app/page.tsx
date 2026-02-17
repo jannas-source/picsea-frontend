@@ -4,13 +4,30 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Job } from '@/lib/types';
 import { loadJobs, saveJobs, createJob, createPhoto, partToBOMItem, identifyPhoto } from '@/lib/store';
 import { ensureDemoData, getDemoJobs } from '@/lib/demo-data';
+import { AuthProvider, useAuth } from '@/lib/auth';
 import { AppShell, AppView } from '@/components/AppShell';
 import { CaptureView } from '@/components/CaptureView';
 import { ReviewView } from '@/components/ReviewView';
 import { StatusView } from '@/components/StatusView';
 import { PhotoAnalysis } from '@/components/PhotoAnalysis';
+import { AuthModal } from '@/components/AuthModal';
+import { ScanLimitBanner } from '@/components/ScanLimitBanner';
 
 export default function Home() {
+  return (
+    <AuthProvider>
+      <PicSeaApp />
+    </AuthProvider>
+  );
+}
+
+function PicSeaApp() {
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const { user, canScan } = useAuth();
+
+  const openSignIn = () => { setAuthMode('login'); setAuthOpen(true); };
+  const openSignUp = () => { setAuthMode('signup'); setAuthOpen(true); };
   const [jobs, setJobs] = useState<Job[]>([]);
   const [view, setView] = useState<AppView>('capture');
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
@@ -168,7 +185,11 @@ export default function Home() {
         onNavigate={setView}
         activeJobName={activeJob?.name}
         bomCount={bomCount}
+        onSignIn={openSignIn}
       >
+        {/* Scan limit warning banner */}
+        {view === 'capture' && <ScanLimitBanner />}
+
         {view === 'capture' && (
           <CaptureView
             jobs={jobs}
@@ -190,6 +211,9 @@ export default function Home() {
           <StatusView jobs={jobs} onOpenJob={handleOpenJob} />
         )}
       </AppShell>
+
+      {/* Auth modal */}
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} initialMode={authMode} />
 
       {/* Photo analysis overlay */}
       <PhotoAnalysis

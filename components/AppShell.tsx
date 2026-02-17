@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { Camera, ClipboardList, Clock } from 'lucide-react';
 import { ConnectionStatus } from './ConnectionStatus';
+import { AccountButton } from './AccountButton';
 
 export type AppView = 'capture' | 'review' | 'status';
 
@@ -12,6 +13,7 @@ interface AppShellProps {
   onNavigate: (view: AppView) => void;
   activeJobName?: string;
   bomCount?: number;
+  onSignIn: () => void;
   children: React.ReactNode;
 }
 
@@ -21,7 +23,7 @@ const NAV_ITEMS: { id: AppView; label: string; icon: typeof Camera }[] = [
   { id: 'status', label: 'Status', icon: Clock },
 ];
 
-export function AppShell({ view, onNavigate, activeJobName, bomCount, children }: AppShellProps) {
+export function AppShell({ view, onNavigate, activeJobName, bomCount, onSignIn, children }: AppShellProps) {
   return (
     <div className="min-h-[100dvh] flex flex-col relative" style={{ background: 'var(--abyss)' }}>
       {/* Top bar */}
@@ -84,10 +86,10 @@ export function AppShell({ view, onNavigate, activeJobName, bomCount, children }
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {activeJobName && view === 'review' && (
             <span
-              className="text-[10px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-full truncate max-w-[160px]"
+              className="text-[10px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-full truncate max-w-[120px] hidden sm:block"
               style={{
                 background: 'rgba(0, 240, 255, 0.08)',
                 color: '#00F0FF',
@@ -100,6 +102,7 @@ export function AppShell({ view, onNavigate, activeJobName, bomCount, children }
             </span>
           )}
           <ConnectionStatus />
+          <AccountButton onSignIn={onSignIn} />
         </div>
       </header>
 
