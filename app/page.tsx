@@ -1,124 +1,202 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useCallback } from "react";
-import { Job, View, MaintenanceSchedule } from "@/lib/types";
-import { loadJobs, saveJobs } from "@/lib/store";
-import { AppShell } from "@/components/AppShell";
-import { Dashboard } from "@/components/Dashboard";
-import { JobWorkspace } from "@/components/JobWorkspace";
-import { AnalyticsView } from "@/components/AnalyticsView";
-import { MaintenanceView } from "@/components/MaintenanceView";
+import React, { useState, useEffect, useCallback } from 'react';
+import { Job } from '@/lib/types';
+import { loadJobs, saveJobs, createJob, createPhoto, partToBOMItem, identifyPhoto } from '@/lib/store';
+import { ensureDemoData, getDemoJobs } from '@/lib/demo-data';
+import { AppShell, AppView } from '@/components/AppShell';
+import { CaptureView } from '@/components/CaptureView';
+import { ReviewView } from '@/components/ReviewView';
+import { StatusView } from '@/components/StatusView';
+import { PhotoAnalysis } from '@/components/PhotoAnalysis';
 
 export default function Home() {
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [view, setView] = useState<View>('dashboard');
+  const [view, setView] = useState<AppView>('capture');
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
-  const [maintenanceSchedules, setMaintenanceSchedules] = useState<MaintenanceSchedule[]>([]);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analyzingFilename, setAnalyzingFilename] = useState('');
 
+  // Load jobs from localStorage, seed with demo data if empty
   useEffect(() => {
-    setJobs(loadJobs());
-    // Load maintenance schedules from localStorage for now
-    try {
-      const raw = localStorage.getItem('picsea_maintenance');
-      if (raw) setMaintenanceSchedules(JSON.parse(raw));
-    } catch {}
+    const stored = loadJobs();
+    const seeded = ensureDemoData(stored);
+    setJobs(seeded);
+    if (seeded !== stored) saveJobs(seeded);
+
+    // Auto-select the first active job
+    const active = seeded.find((j) => j.status === 'active');
+    if (active) setActiveJobId(active.id);
+
     setLoaded(true);
   }, []);
 
+  // Persist on change
   useEffect(() => {
     if (loaded) saveJobs(jobs);
   }, [jobs, loaded]);
 
-  useEffect(() => {
-    if (loaded) {
-      localStorage.setItem('picsea_maintenance', JSON.stringify(maintenanceSchedules));
-    }
-  }, [maintenanceSchedules, loaded]);
+  const activeJob = jobs.find((j) => j.id === activeJobId) || null;
 
   const updateJob = useCallback((updatedJob: Job) => {
-    setJobs(prev => prev.map(j => j.id === updatedJob.id ? { ...updatedJob, updatedAt: new Date().toISOString() } : j));
+    setJobs((prev) =>
+      prev.map((j) =>
+        j.id === updatedJob.id
+          ? { ...updatedJob, updatedAt: new Date().toISOString() }
+          : j
+      )
+    );
   }, []);
 
-  const openJob = (jobId: string) => {
-    setActiveJobId(jobId);
-    setView('job');
-  };
+  // Handle photo capture → create or update job → analyze
+  const handlePhotoCapture = useCallback(
+    async (dataUrl: string, filename: string) => {
+      setAnalyzing(true);
+      setAnalyzingFilename(filename);
 
-  const addJob = (job: Job) => {
-    setJobs(prev => [job, ...prev]);
-    openJob(job.id);
-  };
+      let targetJob = activeJob;
 
-  const deleteJob = (jobId: string) => {
-    setJobs(prev => prev.filter(j => j.id !== jobId));
-    if (activeJobId === jobId) {
-      setView('dashboard');
-      setActiveJobId(null);
-    }
-  };
+      // If no active job, create one
+      if (!targetJob) {
+        const now = new Date();
+        const name = `Job — ${now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+        const newJob = createJob(name, '', '');
+        targetJob = newJob;
+        setJobs((prev) => [newJob, ...prev]);
+        setActiveJobId(newJob.id);
+      }
 
-  const handleMarkPerformed = (scheduleId: string) => {
-    setMaintenanceSchedules(prev => prev.map(s => {
-      if (s.id !== scheduleId) return s;
-      const next = new Date();
-      if (s.intervalMonths) next.setMonth(next.getMonth() + s.intervalMonths);
-      return { ...s, lastPerformedAt: new Date().toISOString(), nextDueAt: next.toISOString(), urgency: 'upcoming' as const };
-    }));
-  };
+      // Add photo to job
+      const photo = createPhoto(dataUrl, filename);
+      photo.status = 'identifying';
+      const jobWithPhoto = {
+        ...targetJob,
+        photos: [...targetJob.photos, photo],
+        updatedAt: new Date().toISOString(),
+      };
+      setJobs((prev) => prev.map((j) => (j.id === jobWithPhoto.id ? jobWithPhoto : j)));
 
-  const handleAddSchedule = (data: Partial<MaintenanceSchedule>) => {
-    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-    const nextDue = new Date();
-    if (data.intervalMonths) nextDue.setMonth(nextDue.getMonth() + data.intervalMonths);
-    const schedule: MaintenanceSchedule = {
-      id,
-      vesselId: '',
-      vesselName: data.vesselName || '',
-      description: data.description || '',
-      intervalMonths: data.intervalMonths,
-      nextDueAt: nextDue.toISOString(),
-      urgency: 'upcoming',
-      basedOn: 'manual',
-    };
-    setMaintenanceSchedules(prev => [...prev, schedule]);
-  };
+      // Try real API identification, fall back to demo flow
+      try {
+        const result = await identifyPhoto(dataUrl, targetJob.vesselContext);
+        const newBomItems = result.parts.map((p) => partToBOMItem(p, photo.id));
 
-  const activeJob = jobs.find(j => j.id === activeJobId) || null;
+        const updatedPhoto = { ...photo, status: 'identified' as const, identifiedParts: result.parts };
+        const updatedJob = {
+          ...jobWithPhoto,
+          photos: jobWithPhoto.photos.map((p) => (p.id === photo.id ? updatedPhoto : p)),
+          bom: [...jobWithPhoto.bom, ...newBomItems],
+          updatedAt: new Date().toISOString(),
+        };
 
-  const handleNavigate = (v: View) => {
-    setView(v);
-    if (v === 'dashboard') setActiveJobId(null);
-  };
-
-  if (!loaded) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-[var(--cyan)] border-t-transparent rounded-full animate-spin" />
-    </div>
+        setJobs((prev) => prev.map((j) => (j.id === updatedJob.id ? updatedJob : j)));
+      } catch {
+        // API unavailable — mark photo as identified with no new parts (demo mode)
+        const updatedPhoto = { ...photo, status: 'identified' as const };
+        const updatedJob = {
+          ...jobWithPhoto,
+          photos: jobWithPhoto.photos.map((p) => (p.id === photo.id ? updatedPhoto : p)),
+          updatedAt: new Date().toISOString(),
+        };
+        setJobs((prev) => prev.map((j) => (j.id === updatedJob.id ? updatedJob : j)));
+      }
+    },
+    [activeJob]
   );
 
-  return (
-    <AppShell
-      view={view}
-      onNavigate={handleNavigate}
-      jobName={activeJob?.name}
-    >
-      {view === 'dashboard' && (
-        <Dashboard jobs={jobs} onOpenJob={openJob} onAddJob={addJob} onDeleteJob={deleteJob} />
-      )}
-      {view === 'job' && activeJob && (
-        <JobWorkspace job={activeJob} onUpdate={updateJob} onBack={() => handleNavigate('dashboard')} />
-      )}
-      {view === 'analytics' && (
-        <AnalyticsView jobs={jobs} />
-      )}
-      {view === 'maintenance' && (
-        <MaintenanceView 
-          schedules={maintenanceSchedules} 
-          onMarkPerformed={handleMarkPerformed}
-          onAddSchedule={handleAddSchedule}
+  const handleAnalysisComplete = useCallback(() => {
+    setAnalyzing(false);
+    setAnalyzingFilename('');
+    setView('review');
+  }, []);
+
+  const handleTryDemo = useCallback(() => {
+    // Simulate analysis on existing demo job
+    const demoJob = jobs.find((j) => j.id === 'demo_blackbear');
+    if (demoJob) {
+      setActiveJobId(demoJob.id);
+      setAnalyzing(true);
+      setAnalyzingFilename('electrical_panel.jpg');
+    } else {
+      // If demo data was cleared, re-seed
+      const demoJobs = getDemoJobs();
+      setJobs((prev) => [...demoJobs, ...prev.filter((j) => !j.id.startsWith('demo_'))]);
+      setActiveJobId('demo_blackbear');
+      setAnalyzing(true);
+      setAnalyzingFilename('electrical_panel.jpg');
+    }
+  }, [jobs]);
+
+  const handleOpenJob = useCallback(
+    (jobId: string) => {
+      setActiveJobId(jobId);
+      setView('review');
+    },
+    []
+  );
+
+  const handleSelectJob = useCallback((jobId: string) => {
+    setActiveJobId(jobId);
+  }, []);
+
+  const bomCount = activeJob?.bom.length || 0;
+
+  if (!loaded) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: 'var(--abyss)' }}
+      >
+        <div
+          className="w-10 h-10 rounded-full"
+          style={{
+            border: '2px solid transparent',
+            borderTopColor: '#00F0FF',
+            borderRightColor: 'rgba(0, 240, 255, 0.3)',
+            animation: 'oceanic-spin 1s linear infinite',
+          }}
         />
-      )}
-    </AppShell>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <AppShell
+        view={view}
+        onNavigate={setView}
+        activeJobName={activeJob?.name}
+        bomCount={bomCount}
+      >
+        {view === 'capture' && (
+          <CaptureView
+            jobs={jobs}
+            onPhotoCapture={handlePhotoCapture}
+            onOpenJob={handleOpenJob}
+            onTryDemo={handleTryDemo}
+          />
+        )}
+        {view === 'review' && (
+          <ReviewView
+            job={activeJob}
+            allJobs={jobs}
+            onUpdateJob={updateJob}
+            onSelectJob={handleSelectJob}
+            onGoCapture={() => setView('capture')}
+          />
+        )}
+        {view === 'status' && (
+          <StatusView jobs={jobs} onOpenJob={handleOpenJob} />
+        )}
+      </AppShell>
+
+      {/* Photo analysis overlay */}
+      <PhotoAnalysis
+        visible={analyzing}
+        filename={analyzingFilename}
+        onComplete={handleAnalysisComplete}
+      />
+    </>
   );
 }

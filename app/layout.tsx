@@ -24,24 +24,26 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "PicSea — Marine Procurement Intelligence | 7-SENSE",
+  title: "PicSea — Snap. Identify. Order. | 7-SENSE Marine",
   description:
-    "End-to-end intelligent procurement for marine professionals. Photo identification, BOM generation, multi-vendor sourcing, and PO export.",
+    "Field-ready marine parts identification and procurement. Photograph a part, get instant matches from 29,000+ records, build your order, and get back to work.",
   keywords: [
-    "marine procurement",
+    "marine parts",
     "parts identification",
-    "BOM builder",
+    "marine procurement",
     "marine technician",
     "7-SENSE",
     "PicSea",
+    "boat parts",
+    "marine ordering",
   ],
   authors: [{ name: "7-SENSE Marine" }],
   openGraph: {
-    title: "PicSea — Marine Procurement Intelligence",
+    title: "PicSea — Snap. Identify. Order.",
     description:
-      "Photo → Part ID → BOM → Purchase Order. AI-powered procurement for marine professionals.",
+      "Photo → Part ID → Order. Field-tested procurement for marine professionals.",
     type: "website",
-    siteName: "PicSea by 7-SENSE",
+    siteName: "PicSea by 7-SENSE Marine",
   },
 };
 
@@ -54,7 +56,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           fontFamily: "var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
           background: "#000C18",
           color: "#FFFFFF",
-          minHeight: "100vh",
+          minHeight: "100dvh",
+          overscrollBehavior: "none",
         }}
       >
         {children}
