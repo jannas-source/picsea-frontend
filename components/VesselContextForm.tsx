@@ -441,7 +441,14 @@ export function VesselContextForm({ vessel, onChange, onSave, compact = false }:
       {onSave && (
         <button
           onClick={() => onSave(vessel)}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--cyan)] text-[var(--abyss)] font-semibold text-sm rounded-lg hover:shadow-[0_0_20px_var(--cyan-glow)] transition-all mt-4"
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-black transition-all duration-200 mt-4"
+          style={{
+            background: 'var(--cyan)',
+            color: 'var(--abyss)',
+            fontFamily: 'Montserrat, sans-serif',
+          }}
+          onMouseEnter={e => ((e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-cyan-sm)')}
+          onMouseLeave={e => ((e.currentTarget as HTMLElement).style.boxShadow = 'none')}
         >
           <Save className="w-4 h-4" />
           Save Vessel Profile
@@ -457,7 +464,10 @@ export function VesselContextForm({ vessel, onChange, onSave, compact = false }:
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <label className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium block mb-1.5">
+    <label
+      className="text-[10px] uppercase tracking-wider font-bold block mb-1.5"
+      style={{ color: 'var(--text-tertiary)', fontFamily: 'Montserrat, sans-serif' }}
+    >
       {children}
     </label>
   );
@@ -475,25 +485,60 @@ interface AccordionSectionProps {
 
 function AccordionSection({ title, icon: Icon, expanded, onToggle, children, badge, warning }: AccordionSectionProps) {
   return (
-    <div className="glass rounded-xl overflow-hidden">
+    <div
+      className="rounded-xl overflow-hidden"
+      style={{
+        background: 'rgba(0, 26, 46, 0.4)',
+        border: expanded ? '1px solid rgba(0, 240, 255, 0.15)' : '1px solid rgba(255,255,255,0.06)',
+        backdropFilter: 'blur(12px)',
+        transition: 'border-color 0.2s',
+      }}
+    >
       <button
         onClick={onToggle}
-        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[var(--surface-hover)] transition-colors"
+        className="w-full flex items-center gap-3 px-4 py-3 transition-colors duration-150"
+        style={{ background: 'transparent' }}
+        onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)')}
+        onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
       >
-        <Icon className="w-4 h-4 text-[var(--cyan)]" />
-        <span className="text-sm font-semibold flex-1 text-left">{title}</span>
+        <Icon className="w-4 h-4" style={{ color: 'var(--cyan)' }} />
+        <span
+          className="text-sm font-bold flex-1 text-left text-white"
+          style={{ fontFamily: 'Montserrat, sans-serif' }}
+        >
+          {title}
+        </span>
         {badge && (
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--cyan)]/10 text-[var(--cyan)] font-medium">
+          <span
+            className="text-[10px] px-2 py-0.5 rounded-full font-bold"
+            style={{
+              background: 'rgba(0, 240, 255, 0.1)',
+              color: 'var(--cyan)',
+              border: '1px solid rgba(0, 240, 255, 0.2)',
+              fontFamily: 'Montserrat, sans-serif',
+            }}
+          >
             {badge}
           </span>
         )}
         {warning && !badge && (
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 font-medium flex items-center gap-1">
+          <span
+            className="text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1"
+            style={{
+              background: 'rgba(251, 191, 36, 0.1)',
+              color: '#FBBF24',
+              border: '1px solid rgba(251, 191, 36, 0.2)',
+              fontFamily: 'Montserrat, sans-serif',
+            }}
+          >
             <AlertTriangle className="w-2.5 h-2.5" />
             {warning}
           </span>
         )}
-        {expanded ? <ChevronUp className="w-4 h-4 text-[var(--text-tertiary)]" /> : <ChevronDown className="w-4 h-4 text-[var(--text-tertiary)]" />}
+        {expanded
+          ? <ChevronUp className="w-4 h-4" style={{ color: 'var(--text-tertiary)' }} />
+          : <ChevronDown className="w-4 h-4" style={{ color: 'var(--text-tertiary)' }} />
+        }
       </button>
       {expanded && (
         <div className="px-4 pb-4 fade-in">

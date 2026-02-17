@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { User, LogOut, ArrowLeft } from "lucide-react";
 
 interface NavbarProps {
@@ -23,8 +24,8 @@ export function Navbar({ onAuthClick }: NavbarProps) {
     }
 
     const handleStorage = () => {
-      const storedUser = localStorage.getItem('picsea_user');
-      setUser(storedUser ? JSON.parse(storedUser) : null);
+      const u = localStorage.getItem('picsea_user');
+      setUser(u ? JSON.parse(u) : null);
     };
     window.addEventListener('storage', handleStorage);
 
@@ -44,33 +45,70 @@ export function Navbar({ onAuthClick }: NavbarProps) {
   };
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 py-4 transition-all duration-300 ${
-      scrolled ? 'bg-[#000C18]/95 backdrop-blur-xl shadow-lg shadow-black/20' : 'bg-[#000C18]/80 backdrop-blur-md'
-    } border-b border-white/[0.06]`}>
+    <nav
+      className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 py-3 transition-all duration-300"
+      style={{
+        background: scrolled
+          ? 'rgba(0, 10, 20, 0.92)'
+          : 'rgba(0, 10, 20, 0.75)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(0, 240, 255, 0.08)',
+        boxShadow: scrolled
+          ? '0 1px 0 rgba(0, 240, 255, 0.08), 0 4px 30px rgba(0, 0, 0, 0.4)'
+          : 'none',
+      }}
+    >
+      {/* Bottom glow edge */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-px pointer-events-none"
+        style={{
+          background: 'linear-gradient(90deg, transparent 0%, rgba(0, 240, 255, 0.2) 30%, rgba(0, 240, 255, 0.3) 50%, rgba(0, 240, 255, 0.2) 70%, transparent 100%)',
+          opacity: scrolled ? 1 : 0.5,
+        }}
+      />
+
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Left */}
-        <div className="flex items-center gap-3 sm:gap-6">
+        <div className="flex items-center gap-3 sm:gap-4">
           <a
             href="https://7sense.net"
-            className="flex items-center gap-1.5 text-white/30 hover:text-[#00F0FF] transition-colors text-xs"
+            className="flex items-center gap-1.5 text-xs transition-all duration-200 group"
+            style={{ color: 'rgba(255,255,255,0.25)' }}
+            onMouseEnter={e => ((e.currentTarget as HTMLElement).style.color = 'rgba(0, 240, 255, 0.7)')}
+            onMouseLeave={e => ((e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.25)')}
           >
-            <ArrowLeft className="w-3 h-3" />
-            <span className="hidden sm:inline">7-SENSE</span>
+            <ArrowLeft className="w-3 h-3 transition-transform group-hover:-translate-x-0.5" />
+            <span className="hidden sm:inline" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, letterSpacing: '0.15em' }}>
+              7-SENSE
+            </span>
           </a>
-          
-          <div className="h-4 w-px bg-white/10" />
-          
+
+          <div className="h-4 w-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
+
+          {/* Logo + wordmark */}
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-[#00F0FF]/10 flex items-center justify-center">
-              <svg viewBox="0 0 24 24" className="w-4 h-4 text-[#00F0FF]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 10.189V14" />
-                <path d="M12 2v3" />
-                <path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6" />
-                <path d="M19.38 20A11.6 11.6 0 0 0 21 14l-8.188-3.639a2 2 0 0 0-1.624 0L3 14a11.6 11.6 0 0 0 2.81 7.76" />
-                <path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1s1.2 1 2.5 1c2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />
-              </svg>
+            <div className="relative w-7 h-7">
+              <div
+                className="absolute inset-0 rounded-full"
+                style={{ boxShadow: '0 0 10px rgba(0, 240, 255, 0.3)' }}
+              />
+              <Image
+                src="/logo-primary-circle.jpg"
+                alt="7-SENSE"
+                width={28}
+                height={28}
+                className="rounded-full object-cover relative z-10"
+              />
             </div>
-            <span className="text-base font-semibold text-white tracking-tight">PicSea</span>
+            <div>
+              <span
+                className="text-sm font-black tracking-wide text-white block"
+                style={{ fontFamily: 'Montserrat, sans-serif', textShadow: '0 0 10px rgba(0, 240, 255, 0.2)' }}
+              >
+                PicSea
+              </span>
+            </div>
           </div>
         </div>
 
@@ -78,21 +116,41 @@ export function Navbar({ onAuthClick }: NavbarProps) {
         <div className="flex items-center gap-4">
           {user ? (
             <>
-              <div className="flex items-center gap-2 text-white/50 text-sm">
+              <div className="flex items-center gap-2 text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>
                 <User className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{user.name}</span>
+                <span className="hidden sm:inline text-xs">{user.name}</span>
               </div>
-              <button 
+              <button
                 onClick={handleLogout}
-                className="text-white/30 hover:text-red-400 transition-colors"
+                className="transition-colors duration-200"
+                style={{ color: 'rgba(255,255,255,0.25)' }}
+                onMouseEnter={e => ((e.currentTarget as HTMLElement).style.color = '#F87171')}
+                onMouseLeave={e => ((e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.25)')}
               >
                 <LogOut className="w-3.5 h-3.5" />
               </button>
             </>
           ) : (
-            <button 
+            <button
               onClick={onAuthClick}
-              className="px-4 py-1.5 text-sm font-medium text-white/50 hover:text-white border border-white/10 hover:border-white/20 rounded-lg transition-all"
+              className="px-4 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200"
+              style={{
+                color: 'rgba(255,255,255,0.5)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                fontFamily: 'Montserrat, sans-serif',
+              }}
+              onMouseEnter={e => {
+                const el = e.currentTarget as HTMLElement;
+                el.style.color = '#00F0FF';
+                el.style.borderColor = 'rgba(0, 240, 255, 0.3)';
+                el.style.boxShadow = '0 0 12px rgba(0, 240, 255, 0.1)';
+              }}
+              onMouseLeave={e => {
+                const el = e.currentTarget as HTMLElement;
+                el.style.color = 'rgba(255,255,255,0.5)';
+                el.style.borderColor = 'rgba(255,255,255,0.1)';
+                el.style.boxShadow = 'none';
+              }}
             >
               Sign In
             </button>
