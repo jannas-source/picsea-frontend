@@ -23,50 +23,75 @@ const NAV_ITEMS: { id: AppView; label: string; icon: typeof Camera }[] = [
 export function AppShell({ view, onNavigate, activeJobName, bomCount, children }: AppShellProps) {
   return (
     <div className="min-h-[100dvh] flex flex-col relative" style={{ background: 'var(--abyss)' }}>
-      {/* Top bar — minimal */}
+      {/* Top bar */}
       <header
-        className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4"
+        className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-5"
         style={{
-          height: '56px',
-          background: 'rgba(0, 6, 12, 0.85)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(0, 240, 255, 0.06)',
+          height: '64px',
+          background: 'linear-gradient(180deg, rgba(0, 12, 24, 0.95) 0%, rgba(0, 12, 24, 0.85) 100%)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          borderBottom: '1px solid rgba(0, 240, 255, 0.08)',
         }}
       >
-        <div className="flex items-center gap-2.5">
-          <div className="relative w-7 h-7 flex-shrink-0">
+        {/* Bottom glow line */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-px pointer-events-none"
+          style={{
+            background: 'linear-gradient(90deg, transparent 10%, rgba(0, 240, 255, 0.15) 50%, transparent 90%)',
+          }}
+        />
+
+        <div className="flex items-center gap-3">
+          <div className="relative w-9 h-9 flex-shrink-0">
             <div
-              className="absolute inset-0 rounded-full"
-              style={{ boxShadow: '0 0 10px rgba(0, 240, 255, 0.3)' }}
+              className="absolute inset-[-3px] rounded-full"
+              style={{
+                background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.25), rgba(0, 240, 255, 0.05))',
+                filter: 'blur(4px)',
+              }}
             />
             <Image
               src="/logo-primary-circle.jpg"
               alt="PicSea"
-              width={28}
-              height={28}
+              width={36}
+              height={36}
               className="rounded-full object-cover relative z-10"
+              style={{ border: '2px solid rgba(0, 240, 255, 0.2)' }}
               priority
             />
           </div>
-          <span
-            className="text-xs font-black tracking-[0.15em] uppercase"
-            style={{
-              fontFamily: 'var(--font-montserrat)',
-              color: '#FFFFFF',
-            }}
-          >
-            PicSea
-          </span>
+          <div className="flex flex-col">
+            <span
+              className="text-sm font-black tracking-[0.12em] uppercase leading-tight"
+              style={{
+                fontFamily: 'var(--font-montserrat)',
+                color: '#FFFFFF',
+              }}
+            >
+              PicSea
+            </span>
+            <span
+              className="text-[8px] font-semibold tracking-[0.2em] uppercase"
+              style={{
+                color: 'rgba(0, 240, 255, 0.5)',
+                fontFamily: 'var(--font-montserrat)',
+              }}
+            >
+              by 7-SENSE
+            </span>
+          </div>
         </div>
+
         {activeJobName && view === 'review' && (
           <span
-            className="text-[10px] font-bold tracking-wider uppercase px-3 py-1 rounded-full truncate max-w-[200px]"
+            className="text-[10px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-full truncate max-w-[180px]"
             style={{
-              background: 'rgba(0, 240, 255, 0.06)',
-              color: 'rgba(0, 240, 255, 0.6)',
-              border: '1px solid rgba(0, 240, 255, 0.1)',
+              background: 'rgba(0, 240, 255, 0.08)',
+              color: '#00F0FF',
+              border: '1px solid rgba(0, 240, 255, 0.15)',
               fontFamily: 'var(--font-montserrat)',
+              boxShadow: '0 0 12px rgba(0, 240, 255, 0.06)',
             }}
           >
             {activeJobName}
@@ -78,8 +103,8 @@ export function AppShell({ view, onNavigate, activeJobName, bomCount, children }
       <main
         className="flex-1"
         style={{
-          paddingTop: '56px',
-          paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))',
+          paddingTop: '64px',
+          paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
         }}
       >
         {children}
@@ -89,46 +114,62 @@ export function AppShell({ view, onNavigate, activeJobName, bomCount, children }
       <nav
         className="fixed bottom-0 left-0 right-0 z-40"
         style={{
-          background: 'rgba(0, 6, 12, 0.92)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          borderTop: '1px solid rgba(0, 240, 255, 0.06)',
+          background: 'linear-gradient(0deg, rgba(0, 6, 12, 0.98) 0%, rgba(0, 12, 24, 0.92) 100%)',
+          backdropFilter: 'blur(30px)',
+          WebkitBackdropFilter: 'blur(30px)',
+          borderTop: '1px solid rgba(0, 240, 255, 0.08)',
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         }}
       >
-        {/* Top glow */}
+        {/* Top glow line */}
         <div
           className="absolute top-0 left-0 right-0 h-px pointer-events-none"
           style={{
-            background: 'linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.12) 40%, rgba(0, 240, 255, 0.18) 50%, rgba(0, 240, 255, 0.12) 60%, transparent)',
+            background: 'linear-gradient(90deg, transparent 5%, rgba(0, 240, 255, 0.2) 30%, rgba(0, 240, 255, 0.35) 50%, rgba(0, 240, 255, 0.2) 70%, transparent 95%)',
           }}
         />
 
-        <div className="flex items-center justify-around h-[72px] px-4 max-w-md mx-auto">
+        <div className="flex items-center justify-around h-[80px] px-6 max-w-md mx-auto">
           {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
             const active = view === id;
             return (
               <button
                 key={id}
                 onClick={() => onNavigate(id)}
-                className="flex flex-col items-center gap-1 relative transition-colors"
+                className="flex flex-col items-center gap-1.5 relative transition-all duration-200"
                 style={{
-                  minWidth: '64px',
-                  minHeight: '60px',
-                  paddingTop: '8px',
-                  color: active ? '#00F0FF' : 'rgba(255,255,255,0.35)',
+                  minWidth: '72px',
+                  minHeight: '64px',
+                  paddingTop: '10px',
+                  color: active ? '#00F0FF' : 'rgba(255,255,255,0.4)',
                 }}
               >
+                {/* Active background glow */}
+                {active && (
+                  <div
+                    className="absolute inset-0 rounded-2xl pointer-events-none"
+                    style={{
+                      background: 'radial-gradient(ellipse at center top, rgba(0, 240, 255, 0.08) 0%, transparent 70%)',
+                    }}
+                  />
+                )}
+
                 <div className="relative">
                   <Icon className="w-6 h-6" strokeWidth={active ? 2.5 : 1.5} />
+                  {active && (
+                    <div
+                      className="absolute inset-[-4px] rounded-full pointer-events-none"
+                      style={{ boxShadow: '0 0 12px rgba(0, 240, 255, 0.2)' }}
+                    />
+                  )}
                   {/* BOM count badge on Review */}
                   {id === 'review' && bomCount !== undefined && bomCount > 0 && (
                     <div
-                      className="absolute -top-1.5 -right-2 w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold"
+                      className="absolute -top-1.5 -right-2.5 w-[18px] h-[18px] rounded-full flex items-center justify-center text-[9px] font-black"
                       style={{
-                        background: '#00F0FF',
+                        background: 'linear-gradient(135deg, #00F0FF, #00C8D6)',
                         color: '#000C18',
-                        boxShadow: '0 0 8px rgba(0, 240, 255, 0.4)',
+                        boxShadow: '0 0 10px rgba(0, 240, 255, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3)',
                       }}
                     >
                       {bomCount > 9 ? '9+' : bomCount}
@@ -136,18 +177,18 @@ export function AppShell({ view, onNavigate, activeJobName, bomCount, children }
                   )}
                 </div>
                 <span
-                  className="text-[10px] font-bold tracking-wider"
+                  className="text-[11px] font-bold tracking-wider relative z-10"
                   style={{ fontFamily: 'var(--font-montserrat)' }}
                 >
                   {label}
                 </span>
-                {/* Active indicator */}
+                {/* Active indicator bar */}
                 {active && (
                   <div
-                    className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full"
+                    className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-[2px] rounded-full"
                     style={{
-                      background: '#00F0FF',
-                      boxShadow: '0 0 8px rgba(0, 240, 255, 0.5)',
+                      background: 'linear-gradient(90deg, transparent, #00F0FF, transparent)',
+                      boxShadow: '0 0 12px rgba(0, 240, 255, 0.6)',
                     }}
                   />
                 )}
