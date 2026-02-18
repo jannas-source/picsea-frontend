@@ -34,7 +34,26 @@ export function loadJobs(): Job[] {
 
 export function saveJobs(jobs: Job[]) {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs));
+  // Strip base64 image data before persisting — phone photos are 1-3MB each
+  // and will exceed the ~5MB localStorage quota after just a few scans.
+  // The file data is only needed in-memory during the active session.
+  const lean = jobs.map(j => ({
+    ...j,
+    photos: j.photos.map(p => ({ ...p, file: '' })),
+  }));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(lean));
+  } catch (e) {
+    // Still too large (lots of jobs) — keep only the 20 most recent
+    console.warn('[picsea] localStorage quota hit, trimming to 20 most recent jobs');
+    try {
+      const recent = lean.slice(-20);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(recent));
+    } catch {
+      // Nuclear fallback — clear and start fresh
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  }
 }
 
 export function createJob(name: string, vessel: string, client: string, template?: JobTemplate): Job {
@@ -250,15 +269,13 @@ function defaultPrefs(): UserPreferences {
 // ============================================================================
 
 export async function identifyPhoto(dataUrl: string, vesselContext?: any, authToken?: string | null): Promise<{ parts: IdentifiedPart[]; notes?: string; systemContext?: string; jobRecommendation?: string }> {
-  const res = await fetch(dataUrl);
-  const blob = await res.blob();
-  const formData = new FormData();
-  formData.append('image', blob, 'photo.jpg');
-  if (vesselContext) {
-    formData.append('vessel_context', JSON.stringify(vesselContext));
-  }
+  // API expects JSON { image: "<base64>", vesselContext? }
+  // Strip the data:image/xxx;base64, prefix if present
+  const base64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
 
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
   if (authToken) {
     headers['Authorization'] = `Bearer ${authToken}`;
   }
@@ -266,7 +283,7 @@ export async function identifyPhoto(dataUrl: string, vesselContext?: any, authTo
   const apiRes = await fetch('https://api.picsea.app/api/identify', {
     method: 'POST',
     headers,
-    body: formData,
+    body: JSON.stringify({ image: base64, vesselContext: vesselContext || {} }),
   });
   
   // Safe JSON parse — handle HTML error pages from Railway/Cloudflare
