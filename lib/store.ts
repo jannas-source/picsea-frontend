@@ -268,7 +268,7 @@ function defaultPrefs(): UserPreferences {
 // API CALLS (identify & search)
 // ============================================================================
 
-export async function identifyPhoto(dataUrl: string, vesselContext?: any, authToken?: string | null): Promise<{ parts: IdentifiedPart[]; notes?: string; systemContext?: string; jobRecommendation?: string }> {
+export async function identifyPhoto(dataUrl: string, vesselContext?: any, authToken?: string | null): Promise<{ parts: IdentifiedPart[]; notes?: string; systemContext?: string; jobRecommendation?: string; affiliateFallbacks?: import('./types').AffiliateFallback[] }> {
   // API expects JSON { image: "<base64>", vesselContext? }
   // Strip the data:image/xxx;base64, prefix if present
   const base64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
@@ -313,6 +313,7 @@ export async function identifyPhoto(dataUrl: string, vesselContext?: any, authTo
     notes: data.analysis?.notes,
     systemContext: data.analysis?.system_context,
     jobRecommendation: data.analysis?.job_recommendation,
+    affiliateFallbacks: data.affiliate_fallbacks || [],
   };
 }
 

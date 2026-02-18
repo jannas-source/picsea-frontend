@@ -130,15 +130,22 @@ function PicSeaApp() {
         // Get vessel context from current state
         const vesselCtx = activeJobRef.current?.vesselContext;
         const result = await identifyPhoto(dataUrl, vesselCtx, currentToken);
+        // Attach affiliate fallbacks to each part for downstream UI rendering
+        const affiliates = result.affiliateFallbacks || [];
         const newBomItems = result.parts.map((p) => partToBOMItem(p, photo.id));
 
         // Functional update — always operates on latest state
         setJobs((prev) => prev.map((j) => {
           if (j.id !== targetJobId) return j;
+          // Attach affiliate fallbacks to parts so ReviewView can render order buttons
+          const partsWithAffiliates = result.parts.map(p => ({
+            ...p,
+            affiliateFallbacks: affiliates,
+          }));
           return {
             ...j,
             photos: j.photos.map((p) => p.id === photo.id
-              ? { ...p, status: 'identified' as const, identifiedParts: result.parts }
+              ? { ...p, status: 'identified' as const, identifiedParts: partsWithAffiliates }
               : p
             ),
             bom: [...j.bom, ...newBomItems],

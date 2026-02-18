@@ -21,6 +21,13 @@ export interface OrderingOption {
   cwr_part_number?: string | null;
 }
 
+export interface AffiliateFallback {
+  vendor: string;
+  url: string;
+  label: string;
+  commissioned: boolean;
+}
+
 export interface IdentifiedPart {
   id: string;
   manufacturer: string;
@@ -86,6 +93,8 @@ export interface BOMItem {
   intelligence?: PartIntelligence;
   // Ordering options
   ordering_options?: OrderingOption[];
+  // Affiliate fallback links (populated when part not in CWR catalog)
+  affiliateFallbacks?: AffiliateFallback[];
   // Warnings from pre-order validation
   warnings?: ValidationWarning[];
 }

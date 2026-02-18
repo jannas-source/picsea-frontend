@@ -245,12 +245,34 @@ export function PartCard({ item, vesselVoltage, onConfirm, onRemove, onQuantityC
               </button>
             </div>
 
-            {/* Line total */}
-            {price && (
+            {/* Line total OR affiliate fallback buttons */}
+            {price ? (
               <span className="text-xs font-bold" style={{ color: '#00F0FF' }}>
                 ${((price.price * item.quantity) / 100).toFixed(2)}
               </span>
-            )}
+            ) : item.affiliateFallbacks && item.affiliateFallbacks.length > 0 ? (
+              <div className="flex items-center gap-1">
+                {item.affiliateFallbacks.slice(0, 2).map((af) => (
+                  <a
+                    key={af.vendor}
+                    href={af.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="px-2 py-1 rounded-md text-[10px] font-bold transition-all active:scale-95"
+                    style={{
+                      background: 'rgba(255, 165, 0, 0.12)',
+                      color: 'rgba(255, 165, 0, 0.9)',
+                      border: '1px solid rgba(255, 165, 0, 0.2)',
+                      whiteSpace: 'nowrap',
+                    }}
+                    title={`Find on ${af.label}`}
+                  >
+                    {af.label}
+                  </a>
+                ))}
+              </div>
+            ) : null}
 
             {/* Expand button */}
             <button
