@@ -252,25 +252,67 @@ export function PartCard({ item, vesselVoltage, onConfirm, onRemove, onQuantityC
               </span>
             ) : item.affiliateFallbacks && item.affiliateFallbacks.length > 0 ? (
               <div className="flex items-center gap-1">
-                {item.affiliateFallbacks.slice(0, 2).map((af) => (
-                  <a
-                    key={af.vendor}
-                    href={af.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
+                {/* Option C: Brand-specific affiliate links */}
+                {item.affiliateFallbacks
+                  .filter(af => af.type === 'affiliate' && af.url)
+                  .slice(0, 1)
+                  .map((af) => (
+                    <a
+                      key={af.vendor}
+                      href={af.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="px-2 py-1 rounded-md text-[10px] font-bold transition-all active:scale-95"
+                      style={{
+                        background: 'rgba(255, 165, 0, 0.12)',
+                        color: 'rgba(255, 165, 0, 0.9)',
+                        border: '1px solid rgba(255, 165, 0, 0.2)',
+                        whiteSpace: 'nowrap',
+                      }}
+                      title={`Order from ${af.label}`}
+                    >
+                      {af.label}
+                    </a>
+                  ))}
+                {/* Option D: Request Quote via 7-Sense */}
+                {item.affiliateFallbacks.find(af => af.type === 'quote_request') && (
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      const qr = item.affiliateFallbacks!.find(af => af.type === 'quote_request')!;
+                      try {
+                        const token = localStorage.getItem('picsea_token');
+                        await fetch(`https://api.picsea.app${qr.endpoint}`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                          },
+                          body: JSON.stringify({
+                            mpn: item.mpn,
+                            manufacturer: item.manufacturer,
+                            part_name: item.name,
+                            quantity: item.quantity,
+                          }),
+                        });
+                        alert(`Quote requested for ${item.mpn}. We'll respond within 24h.`);
+                      } catch {
+                        alert('Failed to submit. Try again.');
+                      }
+                    }}
                     className="px-2 py-1 rounded-md text-[10px] font-bold transition-all active:scale-95"
                     style={{
-                      background: 'rgba(255, 165, 0, 0.12)',
-                      color: 'rgba(255, 165, 0, 0.9)',
-                      border: '1px solid rgba(255, 165, 0, 0.2)',
+                      background: 'rgba(0, 240, 255, 0.08)',
+                      color: 'rgba(0, 240, 255, 0.7)',
+                      border: '1px solid rgba(0, 240, 255, 0.15)',
                       whiteSpace: 'nowrap',
                     }}
-                    title={`Find on ${af.label}`}
+                    title="Request sourcing quote from 7-Sense Marine"
                   >
-                    {af.label}
-                  </a>
-                ))}
+                    Get Quote
+                  </button>
+                )}
               </div>
             ) : null}
 

@@ -23,9 +23,20 @@ export interface OrderingOption {
 
 export interface AffiliateFallback {
   vendor: string;
-  url: string;
+  url?: string;
   label: string;
-  commissioned: boolean;
+  commissioned?: boolean;
+  type: 'affiliate' | 'quote_request';
+  endpoint?: string;
+  description?: string;
+  mpn?: string;
+  manufacturer?: string;
+}
+
+export interface AffiliateFallbacks {
+  affiliateOptions: AffiliateFallback[];
+  quoteRequest: AffiliateFallback;
+  all: AffiliateFallback[];
 }
 
 export interface IdentifiedPart {
