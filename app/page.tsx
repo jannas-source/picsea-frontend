@@ -1,14 +1,16 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Job } from '@/lib/types';
 import { loadJobs, saveJobs, createJob, createPhoto, partToBOMItem, identifyPhoto } from '@/lib/store';
 import { ensureDemoData, getDemoJobs } from '@/lib/demo-data';
 import { AuthProvider, useAuth } from '@/lib/auth';
+import { apiBulkSync } from '@/lib/api';
 import { AppShell, AppView } from '@/components/AppShell';
 import { CaptureView } from '@/components/CaptureView';
 import { ReviewView } from '@/components/ReviewView';
 import { StatusView } from '@/components/StatusView';
+import { HistoryView } from '@/components/HistoryView';
 import { PhotoAnalysis } from '@/components/PhotoAnalysis';
 import { AuthModal } from '@/components/AuthModal';
 import { ScanLimitBanner } from '@/components/ScanLimitBanner';
@@ -35,19 +37,17 @@ function PicSeaApp() {
   const [analyzing, setAnalyzing] = useState(false);
   const [analyzingFilename, setAnalyzingFilename] = useState('');
 
+  // Debounced sync timer ref
+  const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Load jobs from localStorage
-  // Demo data is NOT auto-seeded — only loaded on explicit "Try Demo" action
   useEffect(() => {
     const stored = loadJobs();
-    // Filter out old auto-seeded demo data for logged-in users
     const cleaned = user ? stored.filter((j) => !j.id.startsWith('demo_') || j.bom.some(b => b.confirmed)) : stored;
     setJobs(cleaned);
     if (cleaned !== stored) saveJobs(cleaned);
-
-    // Auto-select the first active job
     const active = cleaned.find((j) => j.status === 'active');
     if (active) setActiveJobId(active.id);
-
     setLoaded(true);
   }, [user]);
 
@@ -55,6 +55,24 @@ function PicSeaApp() {
   useEffect(() => {
     if (loaded) saveJobs(jobs);
   }, [jobs, loaded]);
+
+  // Debounced server sync when authenticated
+  useEffect(() => {
+    if (!loaded || !user || !tokenRef.current) return;
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    syncTimerRef.current = setTimeout(async () => {
+      try {
+        if (jobs.length > 0 && tokenRef.current) {
+          await apiBulkSync(jobs);
+        }
+      } catch {
+        // Silent — don't disrupt UX on sync failure
+      }
+    }, 500);
+    return () => {
+      if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    };
+  }, [jobs, loaded, user]);
 
   const activeJob = jobs.find((j) => j.id === activeJobId) || null;
 
@@ -236,6 +254,7 @@ function PicSeaApp() {
             onPhotoCapture={handlePhotoCapture}
             onOpenJob={handleOpenJob}
             onTryDemo={handleTryDemo}
+            onViewHistory={() => setView('history')}
           />
         )}
         {view === 'review' && (
@@ -249,6 +268,9 @@ function PicSeaApp() {
         )}
         {view === 'status' && (
           <StatusView jobs={jobs} onOpenJob={handleOpenJob} />
+        )}
+        {view === 'history' && (
+          <HistoryView jobs={jobs} onOpenJob={handleOpenJob} />
         )}
       </AppShell>
 

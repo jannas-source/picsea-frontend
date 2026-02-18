@@ -11,10 +11,10 @@ interface PhotoAnalysisProps {
 }
 
 const STAGES = [
-  { label: 'Processing image...', icon: Scan, duration: 1200 },
-  { label: 'Detecting parts...', icon: Package, duration: 1800 },
-  { label: 'Matching against 29,000+ records...', icon: Loader, duration: 2000 },
-  { label: 'Cross-checking compatibility...', icon: Check, duration: 1000 },
+  { label: 'Scanning with Gemini...', icon: Scan, duration: 2500 },
+  { label: 'Challenging with Grok...', icon: Package, duration: 2500 },
+  { label: 'Matching catalog (29,000+ parts)...', icon: Loader, duration: 2000 },
+  { label: 'Confirming match...', icon: Check, duration: 800 },
 ];
 
 export function PhotoAnalysis({ visible, filename, onComplete }: PhotoAnalysisProps) {

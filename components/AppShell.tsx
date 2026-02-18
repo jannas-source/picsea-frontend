@@ -2,11 +2,11 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Camera, ClipboardList, Clock } from 'lucide-react';
+import { Camera, ClipboardList, Clock, History } from 'lucide-react';
 import { ConnectionStatus } from './ConnectionStatus';
 import { AccountButton } from './AccountButton';
 
-export type AppView = 'capture' | 'review' | 'status';
+export type AppView = 'capture' | 'review' | 'status' | 'history';
 
 interface AppShellProps {
   view: AppView;
@@ -20,7 +20,8 @@ interface AppShellProps {
 const NAV_ITEMS: { id: AppView; label: string; icon: typeof Camera }[] = [
   { id: 'capture', label: 'Capture', icon: Camera },
   { id: 'review', label: 'Review', icon: ClipboardList },
-  { id: 'status', label: 'Status', icon: Clock },
+  { id: 'status', label: 'Jobs', icon: Clock },
+  { id: 'history', label: 'History', icon: History },
 ];
 
 export function AppShell({ view, onNavigate, activeJobName, bomCount, onSignIn, children }: AppShellProps) {

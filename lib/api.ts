@@ -1,153 +1,118 @@
-// ============================================================================
-// API CLIENT - Server-side operations
-// ============================================================================
+/**
+ * PicSea API client — thin wrapper over fetch
+ * Auth token loaded from localStorage (set by AuthProvider)
+ */
+
+import { Job } from './types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://api.picsea.app';
+const TOKEN_KEY = 'picsea_token';
 
-async function apiFetch(path: string, options?: RequestInit) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Request failed' }));
-    throw new Error(err.error || 'Request failed');
+function getToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+function authHeaders(): Record<string, string> {
+  const token = getToken();
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return headers;
+}
+
+async function safeJson(res: Response): Promise<any> {
+  const ct = res.headers.get('content-type') || '';
+  if (!ct.includes('application/json')) {
+    throw new Error(res.ok ? 'Unexpected response' : `Server error (${res.status})`);
   }
   return res.json();
 }
 
 // ============================================================================
-// VALIDATION
+// JOBS
 // ============================================================================
 
-export async function validatePreOrder(partId: string, vesselId: string) {
-  return apiFetch('/api/validations/pre-order', {
+/** Fetch all jobs for the authenticated user */
+export async function apiFetchJobs(): Promise<Job[]> {
+  const res = await fetch(`${API_BASE}/api/jobs`, { headers: authHeaders() });
+  if (!res.ok) throw new Error(`Failed to fetch jobs (${res.status})`);
+  const data = await safeJson(res);
+  return data.jobs || [];
+}
+
+/** Upsert an array of localStorage jobs to the server */
+export async function apiBulkSync(jobs: Job[]): Promise<{ synced: number; results: { clientId: string; serverId: string }[] }> {
+  // Sanitize photos out (data URLs are too large to sync)
+  const sanitized = jobs.map((j) => ({
+    ...j,
+    photos: j.photos.map((p) => ({ ...p, file: '' })), // strip data URLs
+  }));
+
+  const res = await fetch(`${API_BASE}/api/jobs/bulk-sync`, {
     method: 'POST',
-    body: JSON.stringify({ part_id: partId, vessel_id: vesselId }),
+    headers: authHeaders(),
+    body: JSON.stringify({ jobs: sanitized }),
   });
+
+  if (!res.ok) {
+    const data = await safeJson(res).catch(() => ({}));
+    throw new Error(data.error || `Sync failed (${res.status})`);
+  }
+  return safeJson(res);
 }
 
-export async function validateBOM(items: { id: string; part_id: string }[], vesselId: string) {
-  return apiFetch('/api/validations/pre-order', {
-    method: 'POST',
-    body: JSON.stringify({ items, vessel_id: vesselId }),
+/** Fetch CSV export for a server job (by server UUID) */
+export async function apiFetchBOMExport(serverId: string): Promise<Blob> {
+  const res = await fetch(`${API_BASE}/api/jobs/${serverId}/export`, {
+    headers: { Authorization: `Bearer ${getToken()}` || '' },
   });
+  if (!res.ok) throw new Error(`Export failed (${res.status})`);
+  return res.blob();
 }
 
-export async function recordInstallation(data: {
-  job_item_id: string;
-  vessel_id: string;
-  part_id?: string;
-  hours_taken?: number;
-  outcome?: string;
-  outcome_notes?: string;
-  location_notes?: string;
-}) {
-  return apiFetch('/api/validations/installation', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
+/** Generate a CSV blob from a BOM in localStorage format */
+export function generateLocalBOMCsv(job: Job): Blob {
+  const lines: string[] = [];
+  lines.push('Part Number,Manufacturer,Part Name,Quantity,Unit Price,Total,In Stock,Supplier,Supplier SKU');
+
+  for (const item of job.bom) {
+    const bestListing = item.listings?.filter((l) => l.in_stock)?.[0] || item.listings?.[0];
+    const unitPrice = bestListing?.price_cents != null
+      ? (bestListing.price_cents / 100).toFixed(2)
+      : '';
+    const total = bestListing?.price_cents != null
+      ? ((bestListing.price_cents * item.quantity) / 100).toFixed(2)
+      : '';
+
+    const esc = (v: string | number) => {
+      const s = String(v ?? '');
+      return s.includes(',') || s.includes('"') ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+
+    lines.push([
+      esc(item.mpn),
+      esc(item.manufacturer),
+      esc(item.name),
+      esc(item.quantity),
+      esc(unitPrice),
+      esc(total),
+      esc(bestListing?.in_stock ? 'Yes' : 'No'),
+      esc(bestListing?.supplier || ''),
+      esc(bestListing?.sku || ''),
+    ].join(','));
+  }
+
+  return new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
 }
 
-export async function verifyInstallation(installationId: string, data: {
-  outcome: string;
-  outcome_notes?: string;
-}) {
-  return apiFetch(`/api/validations/installation/${installationId}/verify`, {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
-}
-
-export async function submitFeedback(data: {
-  part_id?: string;
-  vessel_id?: string;
-  event_type: string;
-  description: string;
-  severity?: string;
-  supplier?: string;
-  supplier_rating?: number;
-}) {
-  return apiFetch('/api/validations/feedback', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
-}
-
-// ============================================================================
-// ANALYTICS
-// ============================================================================
-
-export async function getDashboardStats(orgId: string) {
-  return apiFetch(`/api/analytics/dashboard?org_id=${orgId}`);
-}
-
-export async function getJobPerformance(orgId: string) {
-  return apiFetch(`/api/analytics/job-performance?org_id=${orgId}`);
-}
-
-export async function getPartInsights(partId: string) {
-  return apiFetch(`/api/analytics/part-insights/${partId}`);
-}
-
-export async function getFailurePatterns(orgId: string) {
-  return apiFetch(`/api/analytics/failure-patterns?org_id=${orgId}`);
-}
-
-// ============================================================================
-// TEMPLATES
-// ============================================================================
-
-export async function listTemplates(orgId: string) {
-  return apiFetch(`/api/templates?org_id=${orgId}`);
-}
-
-export async function createTemplate(data: {
-  org_id: string;
-  name: string;
-  description?: string;
-  from_job_id?: string;
-  default_parts?: any[];
-  estimated_hours?: number;
-}) {
-  return apiFetch('/api/templates', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
-}
-
-// ============================================================================
-// MAINTENANCE
-// ============================================================================
-
-export async function getMaintenanceSchedules(params: { vessel_id?: string; org_id?: string }) {
-  const qs = new URLSearchParams(params as any).toString();
-  return apiFetch(`/api/maintenance?${qs}`);
-}
-
-export async function createMaintenanceSchedule(data: {
-  vessel_id: string;
-  part_id?: string;
-  description: string;
-  interval_months?: number;
-  last_performed_at?: string;
-}) {
-  return apiFetch('/api/maintenance', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
-}
-
-export async function markMaintenancePerformed(scheduleId: string) {
-  return apiFetch(`/api/maintenance/${scheduleId}/performed`, { method: 'POST' });
-}
-
-export async function autoDetectSchedules(vesselId: string) {
-  return apiFetch('/api/maintenance/auto-detect', {
-    method: 'POST',
-    body: JSON.stringify({ vessel_id: vesselId }),
-  });
+/** Trigger a browser download from a Blob */
+export function downloadBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
