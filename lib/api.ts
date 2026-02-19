@@ -64,7 +64,7 @@ export async function apiBulkSync(jobs: Job[]): Promise<{ synced: number; result
 /** Fetch CSV export for a server job (by server UUID) */
 export async function apiFetchBOMExport(serverId: string): Promise<Blob> {
   const res = await fetch(`${API_BASE}/api/jobs/${serverId}/export`, {
-    headers: { Authorization: `Bearer ${getToken()}` || '' },
+    headers: authHeaders(),
   });
   if (!res.ok) throw new Error(`Export failed (${res.status})`);
   return res.blob();
